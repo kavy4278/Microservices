@@ -1,0 +1,71 @@
+services:
+  mongo:
+    image: mongo:7
+    ports: ["27017:27017"]
+    volumes: [mongo-data:/data/db]
+    healthcheck: {test: ["CMD","mongosh","--eval","db.adminCommand('ping')"], interval: 10s, retries: 5}
+
+  auth-service:
+    build: ./services/auth-service
+    ports: ["5001:5001"]
+    environment:
+      - PORT=5001
+      - MONGO_URL=mongodb://mongo:27017/authdb
+      - JWT_SECRET=${JWT_SECRET:-devsecret123}
+    depends_on: [mongo]
+
+  listing-service:
+    build: ./services/listing-service
+    ports: ["5002:5002"]
+    environment:
+      - PORT=5002
+      - MONGO_URL=mongodb://mongo:27017/maindb
+    depends_on: [mongo]
+
+  claim-service:
+    build: ./services/claim-service
+    ports: ["5003:5003"]
+    environment:
+      - PORT=5003
+      - MONGO_URL=mongodb://mongo:27017/maindb
+    depends_on: [mongo]
+
+  notify-service:
+    build: ./services/notify-service
+    ports: ["5004:5004"]
+    environment:
+      - PORT=5004
+      - MONGO_URL=mongodb://mongo:27017/maindb
+    depends_on: [mongo]
+
+  api-gateway:
+    build: ./services/api-gateway
+    ports: ["8085:8080"]
+    environment:
+      - PORT=8080
+      - JWT_SECRET=${JWT_SECRET:-devsecret123}
+      - AUTH_URL=http://auth-service:5001
+      - LISTING_URL=http://listing-service:5002
+      - CLAIM_URL=http://claim-service:5003
+      - NOTIFY_URL=http://notify-service:5004
+    depends_on: [auth-service, listing-service, claim-service, notify-service]
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8085}
+    ports: ["5173:80"]
+    depends_on: [api-gateway]
+
+  mongo-express:
+    image: mongo-express:1
+    ports: ["8081:8081"]
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongo:27017/
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=pass
+    depends_on: [mongo]
+
+volumes:
+  mongo-data:

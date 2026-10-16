@@ -1,0 +1,1 @@
+# AnnBachao backend rules — Express, {ok,data} responses, validate body, trust x-user-id/role headers only, one active claim per listing, expiry >= now+2h.
