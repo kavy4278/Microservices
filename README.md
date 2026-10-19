@@ -26,5 +26,12 @@ Demo flow: donor posts (expiry +4h) → NGO Browse → Claim → copy OTP → ri
 ## Docs
 See `docs/PRD.md`, `ARCHITECTURE.md`, `DESIGN.md`, `alldiagrams.md`, `TEST_PLAN.md`. Tasks in `TASKS.md`.
 
-## K8s (marks only)
-YAMLs in `k8s/` — apply with `kubectl apply -f k8s/` on Minikube. Live demo uses Compose.
+## K8s
+Full manifest set in `k8s/all.yaml` (Secret, ConfigMap, PVC, 7 Deployments/Services, Ingress). Deploy on any cluster; `kind` is the tested path:
+
+```powershell
+.\scripts\k8s-deploy.ps1 -Expose     # create kind cluster, build+load images, apply, port-forward
+node tests/smoke.js                  # verify: SMOKE PASS
+.\scripts\k8s-deploy.ps1 -TearDown   # remove the cluster
+```
+Live demo on Docker: `docker compose up --build`.

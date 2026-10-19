@@ -40,3 +40,15 @@ A user can: register → login → (donor) post listing → (ngo) search + claim
 - p95 search < 300ms, stateless services, JWT expiry 7d
 - Expiry guard: reject listing with expiry < now+2h or cookedAt in future
 - No secrets in git, input validation on all POST/PATCH
+
+## 10. Business Model
+Core rescue (post → claim → OTP pickup → deliver) stays **free for small donors, NGOs and riders** to maximize supply and impact. Revenue comes from value-added layers that don't gate the mission:
+
+- **Commission** — small flat fee or 3–5% per successful rescue on the donor side (cheaper than disposal cost, plus tax/CSR credit).
+- **Enterprise SaaS** — monthly subscription for multi-outlet chains: analytics, compliance/food-safety logs, API, priority scheduling.
+- **Impact reports** — verified metrics (meals served, kg CO₂ diverted) sold to corporate CSR budgets; municipal contracts and grants.
+- **Logistics** — per-pickup delivery/logistics fee, optional rider subscriptions for premium routing.
+- **Marketplace** — sponsored/featured listings and partner revenue (packaging, cold storage).
+
+Unit economics hinge on **volume × commission + subscription**, while free access for small players keeps listings high and network effects strong. Full detail: `docs/businessmodel.md`.
+

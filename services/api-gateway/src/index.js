@@ -20,7 +20,7 @@ function authMiddleware(req, res, next) {
   if (!token) return res.status(401).json({ ok: false, error: 'login required' });
   try {
     const p = jwt.verify(token, JWT_SECRET);
-    req.userId = p.id; req.userRole = p.role;
+    req.userId = p.id; req.userRole = p.role; req.userName = p.name || '';
     next();
   } catch (e) { return res.status(401).json({ ok: false, error: 'invalid token' }); }
 }
@@ -36,7 +36,7 @@ async function proxy(base, rewrite, req, res) {
   try {
     const target = base + req.originalUrl.replace(rewrite, '');
     const headers = { 'Content-Type': 'application/json' };
-    if (req.userId) { headers['x-user-id'] = req.userId; headers['x-user-role'] = req.userRole; }
+    if (req.userId) { headers['x-user-id'] = req.userId; headers['x-user-role'] = req.userRole; if (req.userName) headers['x-user-name'] = req.userName; }
     if (req.path === '/api/users') headers['x-user-role'] = 'admin';
     const out = await fetch(target, {
       method: req.method,

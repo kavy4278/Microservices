@@ -55,7 +55,7 @@ app.get('/', async (req,res)=>{
     const r=role(req), id=uid(req);
     let q={};
     if(r==='ngo') q.ngoId=id;
-    else if(r==='rider') q.status={ $in:['CLAIMED','PICKED_UP'] };
+    else if(r==='rider') q={ $or:[ { status: { $in:['CLAIMED','PICKED_UP'] } }, { riderId:id } ] };
     // donor sees claims for own listings:
     if(r==='donor'){
       const mine = await Listing.find({donorId:id}).select('_id');

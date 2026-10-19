@@ -1,59 +1,416 @@
+# AnnBachao — complete Kubernetes manifest set
+# ----------------------------------------------------------------------------
+# Apply:      kubectl apply -f k8s/all.yaml
+# Delete:     kubectl delete -f k8s/all.yaml
+#
+# Images: compose builds them as kavy_project-<svc>. For k8s, tag+push (or load):
+#   docker build -t annbachao/auth-service:latest      services/auth-service
+#   docker build -t annbachao/listing-service:latest   services/listing-service
+#   docker build -t annbachao/claim-service:latest     services/claim-service
+#   docker build -t annbachao/notify-service:latest    services/notify-service
+#   docker build -t annbachao/api-gateway:latest       services/api-gateway
+#   docker build --build-arg VITE_API_URL=/api \
+#     -t annbachao/frontend:latest frontend
+#   # single-node cluster:  minikube image load annbachao/...
+#   # shared cluster:       docker push <registry>/annbachao/...
+#
+# Access (external): enable the ingress controller, then map the host, e.g.
+#   minikube addons enable ingress && minikube tunnel
+#   echo "127.0.0.1 annbachao.local" >> /etc/hosts   # or use the LoadBalancer IPs
+#   open http://annbachao.local
+# The frontend must be built with VITE_API_URL=/api so the Ingress can route
+# /api/* to the gateway on the same host.
+# ----------------------------------------------------------------------------
+apiVersion: v1
+kind: Secret
+metadata:
+  name: annbachao-secrets
+  labels: {app: annbachao, component: config}
+type: Opaque
+stringData:
+  JWT_SECRET: change_this_long_random_secret   # override per environment
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: annbachao-config
+  labels: {app: annbachao, component: config}
+data:
+  AUTH_URL: http://auth-service:5001
+  LISTING_URL: http://listing-service:5002
+  CLAIM_URL: http://claim-service:5003
+  NOTIFY_URL: http://notify-service:5004
+  MONGO_AUTH_URL: mongodb://mongo:27017/authdb
+  MONGO_MAIN_URL: mongodb://mongo:27017/maindb
+---
+# ----------------------------- database ------------------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-data
+  labels: {app: mongo, component: database}
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
-metadata: {name: mongo}
+metadata:
+  name: mongo
+  labels: {app: mongo, component: database}
 spec:
   replicas: 1
+  # RWO PVC: old and new mongo cannot share /data/db, so a rolling update
+  # would deadlock (new pod can't start, old won't die). Recreate avoids that.
+  strategy: {type: Recreate}
   selector: {matchLabels: {app: mongo}}
   template:
-    metadata: {labels: {app: mongo}}
-    spec: {containers: [{name: mongo, image: mongo:7, ports: [{containerPort: 27017}]}]}
+    metadata:
+      labels: {app: mongo, component: database}
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: mongo, containerPort: 27017}
+          env:
+            - {name: MONGO_INITDB_DATABASE, value: maindb}
+          volumeMounts:
+            - {name: data, mountPath: /data/db}
+          readinessProbe:
+            exec: {command: ["mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            exec: {command: ["mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]}
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 15
+            failureThreshold: 6
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: 500m, memory: 512Mi}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: mongo-data}
 ---
 apiVersion: v1
 kind: Service
-metadata: {name: mongo}
-spec: {selector: {app: mongo}, ports: [{port: 27017}]}
+metadata:
+  name: mongo
+  labels: {app: mongo, component: database}
+spec:
+  type: ClusterIP
+  selector: {app: mongo}
+  ports:
+    - {name: mongo, port: 27017, targetPort: 27017}
 ---
+# --------------------------- auth-service ----------------------------------
 apiVersion: apps/v1
 kind: Deployment
-metadata: {name: auth-service}
+metadata:
+  name: auth-service
+  labels: {app: auth-service, component: backend}
 spec:
   replicas: 1
   selector: {matchLabels: {app: auth-service}}
   template:
-    metadata: {labels: {app: auth-service}}
-    spec: {containers: [{name: auth-service, image: annbachao/auth-service:latest, ports: [{containerPort: 5001}], env: [{name: MONGO_URL, value: mongodb://mongo:27017/authdb}]}]}
+    metadata:
+      labels: {app: auth-service, component: backend}
+    spec:
+      containers:
+        - name: auth-service
+          image: annbachao/auth-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: http, containerPort: 5001}
+          env:
+            - {name: PORT, value: "5001"}
+            - name: MONGO_URL
+              valueFrom: {configMapKeyRef: {name: annbachao-config, key: MONGO_AUTH_URL}}
+            - name: JWT_SECRET
+              valueFrom: {secretKeyRef: {name: annbachao-secrets, key: JWT_SECRET}}
+          readinessProbe:
+            httpGet: {path: /health, port: 5001}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /health, port: 5001}
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 256Mi}
 ---
 apiVersion: v1
 kind: Service
-metadata: {name: auth-service}
-spec: {selector: {app: auth-service}, ports: [{port: 5001}]}
+metadata:
+  name: auth-service
+  labels: {app: auth-service, component: backend}
+spec:
+  type: ClusterIP
+  selector: {app: auth-service}
+  ports:
+    - {name: http, port: 5001, targetPort: 5001}
 ---
+# -------------------------- listing-service --------------------------------
 apiVersion: apps/v1
 kind: Deployment
-metadata: {name: listing-service}
+metadata:
+  name: listing-service
+  labels: {app: listing-service, component: backend}
 spec:
   replicas: 2
   selector: {matchLabels: {app: listing-service}}
   template:
-    metadata: {labels: {app: listing-service}}
-    spec: {containers: [{name: listing-service, image: annbachao/listing-service:latest, ports: [{containerPort: 5002}], env: [{name: MONGO_URL, value: mongodb://mongo:27017/maindb}], livenessProbe: {httpGet: {path: /health, port: 5002}, initialDelaySeconds: 15, periodSeconds: 20}}]}
+    metadata:
+      labels: {app: listing-service, component: backend}
+    spec:
+      containers:
+        - name: listing-service
+          image: annbachao/listing-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: http, containerPort: 5002}
+          env:
+            - {name: PORT, value: "5002"}
+            - name: MONGO_URL
+              valueFrom: {configMapKeyRef: {name: annbachao-config, key: MONGO_MAIN_URL}}
+          readinessProbe:
+            httpGet: {path: /health, port: 5002}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /health, port: 5002}
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 256Mi}
 ---
 apiVersion: v1
 kind: Service
-metadata: {name: listing-service}
-spec: {selector: {app: listing-service}, ports: [{port: 5002}]}
+metadata:
+  name: listing-service
+  labels: {app: listing-service, component: backend}
+spec:
+  type: ClusterIP
+  selector: {app: listing-service}
+  ports:
+    - {name: http, port: 5002, targetPort: 5002}
 ---
+# --------------------------- claim-service ---------------------------------
 apiVersion: apps/v1
 kind: Deployment
-metadata: {name: gateway}
+metadata:
+  name: claim-service
+  labels: {app: claim-service, component: backend}
 spec:
   replicas: 1
-  selector: {matchLabels: {app: gateway}}
+  selector: {matchLabels: {app: claim-service}}
   template:
-    metadata: {labels: {app: gateway}}
-    spec: {containers: [{name: gateway, image: annbachao/api-gateway:latest, ports: [{containerPort: 8080}]}]}
+    metadata:
+      labels: {app: claim-service, component: backend}
+    spec:
+      containers:
+        - name: claim-service
+          image: annbachao/claim-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: http, containerPort: 5003}
+          env:
+            - {name: PORT, value: "5003"}
+            - name: MONGO_URL
+              valueFrom: {configMapKeyRef: {name: annbachao-config, key: MONGO_MAIN_URL}}
+          readinessProbe:
+            httpGet: {path: /health, port: 5003}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /health, port: 5003}
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 256Mi}
 ---
 apiVersion: v1
 kind: Service
-metadata: {name: gateway}
-spec: {type: LoadBalancer, selector: {app: gateway}, ports: [{port: 8080}]}
+metadata:
+  name: claim-service
+  labels: {app: claim-service, component: backend}
+spec:
+  type: ClusterIP
+  selector: {app: claim-service}
+  ports:
+    - {name: http, port: 5003, targetPort: 5003}
+---
+# -------------------------- notify-service ---------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notify-service
+  labels: {app: notify-service, component: backend}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: notify-service}}
+  template:
+    metadata:
+      labels: {app: notify-service, component: backend}
+    spec:
+      containers:
+        - name: notify-service
+          image: annbachao/notify-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: http, containerPort: 5004}
+          env:
+            - {name: PORT, value: "5004"}
+            - name: MONGO_URL
+              valueFrom: {configMapKeyRef: {name: annbachao-config, key: MONGO_MAIN_URL}}
+          readinessProbe:
+            httpGet: {path: /health, port: 5004}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /health, port: 5004}
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notify-service
+  labels: {app: notify-service, component: backend}
+spec:
+  type: ClusterIP
+  selector: {app: notify-service}
+  ports:
+    - {name: http, port: 5004, targetPort: 5004}
+---
+# --------------------------- api-gateway -----------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  labels: {app: api-gateway, component: gateway}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: api-gateway}}
+  template:
+    metadata:
+      labels: {app: api-gateway, component: gateway}
+    spec:
+      containers:
+        - name: api-gateway
+          image: annbachao/api-gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: http, containerPort: 8080}
+          env:
+            - {name: PORT, value: "8080"}
+            - name: AUTH_URL
+              valueFrom: {configMapKeyRef: {name: annbachao-config, key: AUTH_URL}}
+            - name: LISTING_URL
+              valueFrom: {configMapKeyRef: {name: annbachao-config, key: LISTING_URL}}
+            - name: CLAIM_URL
+              valueFrom: {configMapKeyRef: {name: annbachao-config, key: CLAIM_URL}}
+            - name: NOTIFY_URL
+              valueFrom: {configMapKeyRef: {name: annbachao-config, key: NOTIFY_URL}}
+            - name: JWT_SECRET
+              valueFrom: {secretKeyRef: {name: annbachao-secrets, key: JWT_SECRET}}
+          readinessProbe:
+            httpGet: {path: /health, port: 8080}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /health, port: 8080}
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  labels: {app: api-gateway, component: gateway}
+spec:
+  type: ClusterIP
+  selector: {app: api-gateway}
+  ports:
+    - {name: http, port: 8080, targetPort: 8080}
+---
+# ----------------------------- frontend ------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels: {app: frontend, component: frontend}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: frontend}}
+  template:
+    metadata:
+      labels: {app: frontend, component: frontend}
+    spec:
+      containers:
+        - name: frontend
+          image: annbachao/frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: http, containerPort: 80}
+          readinessProbe:
+            httpGet: {path: /, port: 80}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /, port: 80}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 250m, memory: 128Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels: {app: frontend, component: frontend}
+spec:
+  type: ClusterIP
+  selector: {app: frontend}
+  ports:
+    - {name: http, port: 80, targetPort: 80}
+---
+# ----------------------------- ingress -------------------------------------
+# Single external entry: UI on /, gateway API on /api (gateway serves /api/*,
+# so paths pass through untouched — no rewrite). Requires an ingress controller.
+# Alternative: change the api-gateway/frontend Services to type: LoadBalancer.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: annbachao-ingress
+  labels: {app: annbachao}
+spec:
+  rules:
+    - host: annbachao.local
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service: {name: api-gateway, port: {name: http}}
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: frontend, port: {name: http}}

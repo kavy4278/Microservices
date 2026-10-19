@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 const User = mongoose.model('User', userSchema);
 
-const sign = (u) => jwt.sign({ id: u._id.toString(), role: u.role }, JWT_SECRET, { expiresIn: '7d' });
+const sign = (u) => jwt.sign({ id: u._id.toString(), role: u.role, name: u.name }, JWT_SECRET, { expiresIn: '7d' });
 const pub = (u) => ({ _id: u._id, name: u.name, email: u.email, role: u.role, org: u.org });
 
 app.get('/health', (req, res) => res.json({ ok: true, service: 'auth' }));
