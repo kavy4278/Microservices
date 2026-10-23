@@ -6,8 +6,17 @@ import {
   StatusBadge, FoodImage, ExpiryBadge, useToast, fmt, hoursLeft,
 } from '../components/ui.jsx';
 import Shell from './Shell.jsx';
+import PhotoInput from '../components/PhotoInput.jsx';
 
 const localDT = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+// Comfortable default expiry when the donor doesn't pick a time (fully editable).
+const SAFE_WINDOW_MS = 5 * 3600000;
+const fmtWhen = (ts) => {
+  const d = new Date(ts), today = new Date();
+  const t = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return d.toDateString() === today.toDateString() ? `today at ${t}` : `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} at ${t}`;
+};
 const NAV = {
   donor: [
     { key: 'overview', label: 'Overview', icon: 'dashboard' },
@@ -82,19 +91,37 @@ function PostForm({ user, onPosted }) {
   const toast = useToast();
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
+  // Tracks whether the donor actually edited "Safe until". The default above is computed
+  // once at mount, so a form left open for hours would silently fall below the 2h floor
+  // and fail on submit even though the donor changed nothing — untouched values get
+  // refreshed automatically instead of raising an error.
+  const [touchedExpiry, setTouchedExpiry] = useState(false);
+
+  const expTs = f.expiryAt ? new Date(f.expiryAt).getTime() : NaN;
+
   const submit = async (e) => {
     e.preventDefault(); setErr(''); setBusy(true);
     try {
       if (!f.title.trim()) throw new Error('Add a title for the food.');
       if (!f.city.trim() || !f.address.trim()) throw new Error('City and pickup address are required.');
-      const exp = new Date(f.expiryAt).getTime();
-      if (exp < Date.now() + 2 * 3600000) throw new Error('Pickup window must end at least 2 hours from now.');
+
+      let expiryTs = expTs;
+      let payload = f;
+      if (!touchedExpiry) {
+        expiryTs = Date.now() + SAFE_WINDOW_MS;
+        payload = { ...f, expiryAt: localDT(new Date(expiryTs)) };
+      }
+      if (!Number.isFinite(expiryTs)) {
+        throw new Error('Pick a safe-until time.');
+      }
+      if (expiryTs <= new Date(f.cookedAt).getTime()) throw new Error('Safe-until must be after the cooked time.');
+
       await api('/api/listings', {
         method: 'POST',
         body: JSON.stringify({
-          ...f, qty: Number(f.qty),
+          ...payload, qty: Number(f.qty),
           cookedAt: new Date(f.cookedAt).toISOString(),
-          expiryAt: new Date(f.expiryAt).toISOString(),
+          expiryAt: new Date(expiryTs).toISOString(),
         }),
       });
       setDone('Posted — the listing is now visible to nearby NGOs.');
@@ -130,8 +157,14 @@ function PostForm({ user, onPosted }) {
             <Field label="Cooked at"><input className="input" type="datetime-local" value={f.cookedAt} onChange={set('cookedAt')} /></Field>
           </div>
           <div style={{ flex: 1, minWidth: 180 }}>
-            <Field label="Safe until" hint="At least 2 hours from now">
-              <input className="input" type="datetime-local" value={f.expiryAt} onChange={set('expiryAt')} />
+            <Field label="Safe until" hint="Pick when it is no longer fresh — editable anytime">
+              <input
+                className="input"
+                type="datetime-local"
+                value={f.expiryAt}
+                onChange={(e) => { setTouchedExpiry(true); setF({ ...f, expiryAt: e.target.value }); }}
+                aria-label="Safe until"
+              />
             </Field>
           </div>
         </div>
@@ -143,9 +176,12 @@ function PostForm({ user, onPosted }) {
             <Field label="Pickup address"><input className="input" value={f.address} onChange={set('address')} placeholder="Street, area" /></Field>
           </div>
         </div>
-        <Field label="Photo URL" hint="Optional — helps NGOs recognise the food">
-          <input className="input" value={f.photoUrl} onChange={set('photoUrl')} placeholder="https://…" />
-        </Field>
+        <PhotoInput
+          label="Photo"
+          value={f.photoUrl}
+          onChange={(v) => setF({ ...f, photoUrl: v })}
+          hint="Optional — add one from your device or snap it with the camera."
+        />
         {err && <p className="form-error mb-2">{err}</p>}
         <Button type="submit" icon="send" disabled={busy}>{busy ? 'Posting…' : 'Publish listing'}</Button>
       </form>
@@ -372,7 +408,7 @@ export default function AppHome({ user, onLogout }) {
                 {user.role === 'donor' ? 'Post your first surplus listing to get started.' : user.role === 'admin' ? 'No listings have been created yet.' : 'New food will appear here as it is posted.'}
               </EmptyState>
             ) : (
-              <div className="stack gap-2">
+            <div className="stack gap-2">
                 {recent.map((x) => (
                   <div key={x._id} className="between" style={{ paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
                     <div>
@@ -390,7 +426,7 @@ export default function AppHome({ user, onLogout }) {
             <div className="stack gap-2">
               {user.role === 'donor' && <Button className="btn-block" icon="plus" onClick={() => setView('post')}>Post surplus food</Button>}
               {(user.role === 'ngo' || user.role === 'admin') && <Button className="btn-block" icon="search" onClick={() => setView('browse')}>Find food nearby</Button>}
-              <Button className="btn-block btn-secondary" icon="package" onClick={() => setView('claims')}>
+              <Button variant="secondary" className="btn-block" icon="package" onClick={() => setView('claims')}>
                 {user.role === 'rider' ? 'View my pickups' : user.role === 'donor' ? 'Claims received' : 'View claims'}
               </Button>
               <div className="card" style={{ background: 'var(--sage)', border: 0, boxShadow: 'none' }}>

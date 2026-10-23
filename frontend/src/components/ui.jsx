@@ -34,8 +34,8 @@ export function ToastProvider({ children }) {
 }
 
 /* ----------------------------- Buttons ----------------------------- */
-export function Button({ variant = 'primary', size, icon, iconRight, children, ...rest }) {
-  const cls = ['btn', `btn-${variant}`, size === 'sm' ? 'btn-sm' : ''].filter(Boolean).join(' ');
+export function Button({ variant = 'primary', size, icon, iconRight, className = '', children, ...rest }) {
+  const cls = ['btn', `btn-${variant}`, size === 'sm' ? 'btn-sm' : '', className].filter(Boolean).join(' ');
   return (
     <button className={cls} {...rest}>
       {icon && <Icon name={icon} size={size === 'sm' ? 15 : 17} />}
@@ -61,12 +61,12 @@ export function StatusBadge({ status }) {
 }
 
 /* ----------------------------- Inputs ----------------------------- */
-export function Field({ label, hint, children }) {
+export function Field({ label, hint, hintClass = 'hint', children }) {
   return (
     <label className="field">
       {label && <span>{label}</span>}
       {children}
-      {hint && <span className="hint">{hint}</span>}
+      {hint && <span className={hintClass}>{hint}</span>}
     </label>
   );
 }
@@ -85,7 +85,7 @@ export function Modal({ open, onClose, title, children, wide }) {
       <div className={`modal${wide ? ' wide' : ''}`} role="dialog" aria-modal="true" aria-label={title}>
         <div className="between mb-3">
           <h3>{title}</h3>
-          <button className="btn btn-ghost btn-sm" onClick={onClose} aria-label="Close"><Icon name="xCircle" size={20} /></button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onClose} aria-label="Close"><Icon name="xCircle" size={20} /></button>
         </div>
         {children}
       </div>

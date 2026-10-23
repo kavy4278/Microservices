@@ -3,7 +3,8 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const app = express();
 app.use(cors());
-app.use(express.json());
+// listings carry a downscaled photo as a base64 data URL — the 100kb default would 413 it
+app.use(express.json({ limit: '8mb' }));
 
 const JWT_SECRET = process.env.JWT_SECRET || 'devsecret123';
 const AUTH_URL = process.env.AUTH_URL || 'http://auth-service:5001';

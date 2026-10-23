@@ -108,7 +108,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ============================ Forms ============================ */
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-.field > label { font-size: .82rem; font-weight: 600; color: var(--char); font-family: var(--font-head); }
+.field > label, .field > span:first-child:not(.hint) { font-size: .82rem; font-weight: 600; color: var(--char); font-family: var(--font-head); }
 .input, .select, .textarea {
   width: 100%; padding: 11px 13px; font-size: .95rem; font-family: var(--font-body);
   color: var(--char); background: #fff; border: 1px solid var(--border);
@@ -117,6 +117,28 @@ button { font-family: inherit; cursor: pointer; }
 .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--forest); box-shadow: 0 0 0 3px rgba(23,107,69,.12); }
 .input::placeholder { color: var(--muted-2); }
 .hint { font-size: .78rem; color: var(--muted); }
+.hint-error { font-size: .78rem; color: var(--red); font-weight: 600; }
+.hint-ok { font-size: .78rem; color: var(--forest); }
+
+/* ------------------------- Photo picker ------------------------- */
+.photo-box {
+  width: 100%; aspect-ratio: 16 / 9; max-height: 240px; overflow: hidden;
+  border: 1px dashed var(--border); border-radius: var(--r-md);
+  background: var(--sage); display: grid; place-items: center;
+}
+.photo-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px; text-align: center; color: var(--muted); font-size: .8rem; }
+.photo-empty svg { color: var(--forest); opacity: .7; }
+
+/* ------------------------- Camera modal ------------------------- */
+.cam-box {
+  width: 100%; aspect-ratio: 4 / 3; overflow: hidden;
+  background: #0b1512; border-radius: var(--r-md);
+  display: grid; place-items: center; margin-bottom: 14px;
+}
+.cam-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cam-err { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px; text-align: center; color: #ffd9d9; }
+
 .form-error { color: var(--red); font-size: .85rem; background: #FEF2F2; border: 1px solid #FBD5D5; padding: 9px 12px; border-radius: var(--r-sm); }
 
 /* ============================ Badges / Pills ============================ */

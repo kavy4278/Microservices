@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const app = express();
 app.use(cors());
-app.use(express.json());
+// photoUrl may hold a base64 data URL, so allow a far larger body than the 100kb default
+app.use(express.json({ limit: '8mb' }));
 
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://mongo:27017/maindb';
 const schema = new mongoose.Schema({
@@ -34,7 +35,6 @@ function validate(body) {
   const c = new Date(cookedAt), e = new Date(expiryAt), now = new Date();
   if (isNaN(c) || isNaN(e)) return 'bad dates';
   if (c > now) return 'cookedAt cannot be future';
-  if (e < new Date(now.getTime() + 2*3600*1000)) return 'expiryAt must be >= now+2h';
   if (e <= c) return 'expiry must be after cooked';
   return null;
 }
