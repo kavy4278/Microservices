@@ -79,17 +79,45 @@ function FoodCard({ l, children }) {
 /* --------------------------- Post form --------------------------- */
 function PostForm({ user, onPosted }) {
   const now = new Date();
+  const DEFAULT_CITIES = ['Mumbai', 'Delhi', 'Bengaluru', 'Jaipur', 'Hyderabad', 'Pune', 'Ahmedabad', 'Chennai', 'Kolkata'];
+  const [knownCities, setKnownCities] = useState(DEFAULT_CITIES);
+  const [cityChoice, setCityChoice] = useState(user.city ? (DEFAULT_CITIES.includes(user.city) ? user.city : '__other__') : DEFAULT_CITIES[0]);
+  const [customCity, setCustomCity] = useState(user.city && !DEFAULT_CITIES.includes(user.city) ? user.city : '');
+
   const [f, setF] = useState({
     title: '', qty: 20, veg: true,
     cookedAt: localDT(new Date(now.getTime() - 30 * 60000)),
     expiryAt: localDT(new Date(now.getTime() + 5 * 3600000)),
-    city: user.city || '', address: '', photoUrl: '',
+    city: user.city || DEFAULT_CITIES[0], address: '', photoUrl: '',
   });
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState('');
   const toast = useToast();
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+
+  useEffect(() => {
+    api('/api/listings/cities').then((cities) => {
+      if (Array.isArray(cities) && cities.length > 0) {
+        setKnownCities(Array.from(new Set([...DEFAULT_CITIES, ...cities])).sort());
+      }
+    }).catch(() => {});
+  }, []);
+
+  const handleCitySelect = (val) => {
+    setCityChoice(val);
+    if (val === '__other__') {
+      setF((prev) => ({ ...prev, city: customCity }));
+    } else {
+      setF((prev) => ({ ...prev, city: val }));
+    }
+  };
+
+  const handleCustomCityChange = (e) => {
+    const val = e.target.value;
+    setCustomCity(val);
+    setF((prev) => ({ ...prev, city: val }));
+  };
 
   // Tracks whether the donor actually edited "Safe until". The default above is computed
   // once at mount, so a form left open for hours would silently fall below the 2h floor
@@ -102,14 +130,15 @@ function PostForm({ user, onPosted }) {
   const submit = async (e) => {
     e.preventDefault(); setErr(''); setBusy(true);
     try {
+      const effectiveCity = (cityChoice === '__other__' ? customCity : cityChoice).trim();
       if (!f.title.trim()) throw new Error('Add a title for the food.');
-      if (!f.city.trim() || !f.address.trim()) throw new Error('City and pickup address are required.');
+      if (!effectiveCity || !f.address.trim()) throw new Error('City and pickup address are required.');
 
       let expiryTs = expTs;
-      let payload = f;
+      let payload = { ...f, city: effectiveCity, phone: user.phone || '' };
       if (!touchedExpiry) {
         expiryTs = Date.now() + SAFE_WINDOW_MS;
-        payload = { ...f, expiryAt: localDT(new Date(expiryTs)) };
+        payload = { ...payload, expiryAt: localDT(new Date(expiryTs)) };
       }
       if (!Number.isFinite(expiryTs)) {
         throw new Error('Pick a safe-until time.');
@@ -170,7 +199,21 @@ function PostForm({ user, onPosted }) {
         </div>
         <div className="row gap-2" style={{ alignItems: 'flex-end' }}>
           <div style={{ flex: 1, minWidth: 140 }}>
-            <Field label="City"><input className="input" value={f.city} onChange={set('city')} placeholder="e.g. Mumbai" /></Field>
+            <Field label="City">
+              <select className="select" value={cityChoice} onChange={(e) => handleCitySelect(e.target.value)}>
+                {knownCities.map((c) => <option key={c} value={c}>{c}</option>)}
+                <option value="__other__">Other…</option>
+              </select>
+              {cityChoice === '__other__' && (
+                <input
+                  className="input mt-1"
+                  value={customCity}
+                  onChange={handleCustomCityChange}
+                  placeholder="Enter city name"
+                  required
+                />
+              )}
+            </Field>
           </div>
           <div style={{ flex: 1, minWidth: 180 }}>
             <Field label="Pickup address"><input className="input" value={f.address} onChange={set('address')} placeholder="Street, area" /></Field>
@@ -228,6 +271,11 @@ function OtpModal({ open, claim, onClose, onSubmit, busy }) {
           Enter the 4-digit code shown to the donor for <strong>{claim?.listingTitle || 'this listing'}</strong>.
           This confirms the food changed hands.
         </p>
+        {claim?.donorPhone && (
+          <p className="small mb-2" style={{ color: 'var(--forest)' }}>
+            <Icon name="phone" size={14} /> Contact donor: <a href={`tel:${claim.donorPhone}`} style={{ color: 'inherit', fontWeight: 600 }}>{claim.donorPhone}</a>{claim.donorName ? ` (${claim.donorName})` : ''}
+          </p>
+        )}
         <div className="otp-inputs">
           {digits.map((d, i) => (
             <input key={i} ref={refs[i]} className={`otp-box${d ? ' filled' : ''}`} inputMode="numeric" maxLength={4} value={d}
@@ -258,6 +306,18 @@ function ClaimCard({ c, role, onPickup, onDeliver, onDelete }) {
         <span><Icon name="mapPin" size={15} /> {c.city}</span>
         <span><Icon name="calendar" size={15} /> {fmt(c.createdAt)}</span>
       </div>
+      {c.riderId && (
+        <div className="mb-2">
+          <span className="badge badge-picked" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <Icon name="bike" size={13} /> Picked up by {c.riderName || 'Rider'}
+          </span>
+        </div>
+      )}
+      {(role === 'ngo' || role === 'rider' || role === 'admin') && c.donorPhone && (
+        <div className="food-meta mt-1 mb-2" style={{ color: 'var(--forest)' }}>
+          <span><Icon name="phone" size={15} /> Contact donor: <a href={`tel:${c.donorPhone}`} style={{ color: 'inherit', fontWeight: 600 }}>{c.donorPhone}</a>{c.donorName ? ` (${c.donorName})` : ''}</span>
+        </div>
+      )}
       {(c.status === 'CLAIMED' || c.status === 'PICKED_UP') && (
         <div className="mb-3">
           <Stepper steps={steps.slice(0, 3)} current={c.status} />
@@ -333,8 +393,17 @@ export default function AppHome({ user, onLogout }) {
     finally { setBusy(false); }
   };
   const deliver = async (c) => {
-    try { await api('/api/claims/' + c._id + '/deliver', { method: 'PATCH' }); toast('Delivered. ' + c.qty + ' servings reached people.', { title: 'Rescue complete' }); load(false); }
-    catch (e) { toast(e.message, { error: true }); }
+    try {
+      await api('/api/claims/' + c._id + '/deliver', { method: 'PATCH' });
+      toast('Delivered. ' + c.qty + ' servings reached people.', { title: 'Rescue complete' });
+      load(false);
+    } catch (e) {
+      if (e.message && (e.message.toLowerCase().includes('rider') || e.message.includes('403'))) {
+        toast('Only the rider assigned to this pickup can confirm delivery.', { error: true });
+      } else {
+        toast(e.message, { error: true });
+      }
+    }
   };
   const delListing = async (l) => {
     if (!window.confirm('Delete this listing? This cannot be undone.')) return;
@@ -449,12 +518,32 @@ export default function AppHome({ user, onLogout }) {
   const Browse = () => {
     const items = data.available || [];
     const canClaim = user.role === 'ngo' || user.role === 'admin';
+    const citiesWithFood = Array.from(new Set(items.map((l) => l.city).filter(Boolean))).sort();
+
+    const filterByCity = (cityName) => {
+      setFilters((prev) => ({ ...prev, city: cityName }));
+      const qs = new URLSearchParams({ available: '1', city: cityName, veg: filters.veg }).toString();
+      api('/api/listings?' + qs).then((r) => setData((d) => ({ ...d, available: r }))).catch(() => {});
+    };
+
     return (
       <div className="stack" style={{ gap: 18 }}>
         <div className="panel" style={{ padding: 16 }}>
           <div className="row" style={{ alignItems: 'flex-end' }}>
             <div style={{ flex: 1, minWidth: 160 }}>
-              <Field label="City"><input className="input" placeholder="Filter by city" value={filters.city} onChange={(e) => setFilters({ ...filters, city: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && search()} /></Field>
+              <Field label="City">
+                <input
+                  className="input"
+                  list="browse-cities-list"
+                  placeholder="Filter by city (e.g. Mumbai or Mumb)"
+                  value={filters.city}
+                  onChange={(e) => setFilters({ ...filters, city: e.target.value })}
+                  onKeyDown={(e) => e.key === 'Enter' && search()}
+                />
+                <datalist id="browse-cities-list">
+                  {citiesWithFood.map((c) => <option key={c} value={c} />)}
+                </datalist>
+              </Field>
             </div>
             <div style={{ minWidth: 150 }}>
               <Field label="Food type">
@@ -467,6 +556,28 @@ export default function AppHome({ user, onLogout }) {
             </div>
             <div style={{ paddingBottom: 14 }}><Button icon="search" onClick={search}>Search</Button></div>
           </div>
+          {citiesWithFood.length > 0 && (
+            <div className="mt-2" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span className="muted small" style={{ fontWeight: 600 }}>Cities with food:</span>
+              <button
+                type="button"
+                className={`chip ${!filters.city ? 'active' : ''}`}
+                onClick={() => filterByCity('')}
+              >
+                All
+              </button>
+              {citiesWithFood.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={`chip ${filters.city.toLowerCase() === c.toLowerCase() ? 'active' : ''}`}
+                  onClick={() => filterByCity(filters.city.toLowerCase() === c.toLowerCase() ? '' : c)}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         {loading ? <Spinner /> : items.length === 0 ? (
           <EmptyState icon="search" title="No food matches yet" action={<Button variant="secondary" icon="refresh" onClick={() => { setFilters({ city: '', veg: '' }); setTimeout(search, 0); }}>Clear filters</Button>}>

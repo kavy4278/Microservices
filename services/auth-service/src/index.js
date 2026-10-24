@@ -21,23 +21,26 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 const User = mongoose.model('User', userSchema);
 
-const sign = (u) => jwt.sign({ id: u._id.toString(), role: u.role, name: u.name }, JWT_SECRET, { expiresIn: '7d' });
-const pub = (u) => ({ _id: u._id, name: u.name, email: u.email, role: u.role, org: u.org });
+const sign = (u) => jwt.sign({ id: u._id.toString(), role: u.role, name: u.name, phone: u.phone || '' }, JWT_SECRET, { expiresIn: '7d' });
+const pub = (u) => ({ _id: u._id, name: u.name, email: u.email, role: u.role, org: u.org, phone: u.phone || '' });
 
 app.get('/health', (req, res) => res.json({ ok: true, service: 'auth' }));
 
 app.post('/register', async (req, res) => {
   try {
-    let { name, email, password, role, org } = req.body;
+    let { name, email, password, role, org, phone } = req.body;
     if (!name || !email || !password || !role) return res.status(400).json({ ok: false, error: 'name,email,password,role required' });
     role = String(role).toLowerCase();
     if (!['admin','donor','ngo','rider'].includes(role)) return res.status(400).json({ ok: false, error: 'invalid role' });
     email = String(email).toLowerCase().trim();
     if (String(password).length < 6) return res.status(400).json({ ok: false, error: 'password min 6 chars' });
+    if (role === 'donor' && (!phone || !String(phone).trim())) {
+      return res.status(400).json({ ok: false, error: 'phone required' });
+    }
     const exists = await User.findOne({ email });
     if (exists) return res.status(409).json({ ok: false, error: 'email already registered' });
     const passwordHash = await bcrypt.hash(String(password), 10);
-    const u = await User.create({ name: String(name).trim(), email, passwordHash, role, org: org || '' });
+    const u = await User.create({ name: String(name).trim(), email, passwordHash, role, org: org || '', phone: phone ? String(phone).trim() : '' });
     res.json({ ok: true, data: { token: sign(u), user: pub(u) } });
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });

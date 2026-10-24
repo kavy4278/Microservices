@@ -87,6 +87,9 @@ export default function Auth({ initialMode = 'login', initialRole = 'donor', onA
                     <Field label="Organisation" hint="Optional"><input className="input" value={f.org} onChange={set('org')} placeholder="Restaurant / NGO" /></Field>
                   </div>
                 </div>
+                <Field label="Phone number" hint={f.role === 'donor' ? 'Required for donor' : 'Optional'}>
+                  <input className="input" type="tel" value={f.phone} onChange={set('phone')} placeholder="+91 98765 43210" required={f.role === 'donor'} />
+                </Field>
               </>
             )}
             <Field label="Email"><input className="input" type="email" value={f.email} onChange={set('email')} placeholder="you@example.com" required autoComplete="email" /></Field>

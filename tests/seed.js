@@ -4,10 +4,10 @@
 const BASE = process.env.API || 'http://localhost:8085';
 
 const ACCOUNTS = [
-  { name: 'Demo Donor', email: 'donor@test.com', password: 'donor123', role: 'donor', org: 'Hotel Saffron' },
-  { name: 'Demo NGO',   email: 'ngo@test.com',   password: 'ngo123',   role: 'ngo',   org: 'Hope Foundation' },
-  { name: 'Demo Rider', email: 'rider@test.com', password: 'rider123', role: 'rider', org: '' },
-  { name: 'Demo Admin', email: 'admin@test.com', password: 'admin123', role: 'admin', org: 'AnnBachao' },
+  { name: 'Demo Donor', email: 'donor@test.com', password: 'donor123', role: 'donor', org: 'Hotel Saffron', phone: '+91 98765 43210' },
+  { name: 'Demo NGO',   email: 'ngo@test.com',   password: 'ngo123',   role: 'ngo',   org: 'Hope Foundation', phone: '+91 98765 43211' },
+  { name: 'Demo Rider', email: 'rider@test.com', password: 'rider123', role: 'rider', org: '', phone: '+91 98765 43212' },
+  { name: 'Demo Admin', email: 'admin@test.com', password: 'admin123', role: 'admin', org: 'AnnBachao', phone: '+91 98765 43213' },
 ];
 
 async function api(path, opts = {}) {

@@ -18,6 +18,8 @@ const schema = new mongoose.Schema({
   city: { type: String, required: true, trim: true },
   address: { type: String, required: true, trim: true },
   photoUrl: { type: String, default: '' },
+  phone: { type: String, default: '' },
+  donorPhone: { type: String, default: '' },
   status: { type: String, enum: ['POSTED','CLAIMED','PICKED_UP','DELIVERED','EXPIRED','CANCELLED'], default: 'POSTED' },
   otp: { type: String, default: () => String(Math.floor(1000 + Math.random()*9000)) },
 }, { timestamps: true });
@@ -25,6 +27,8 @@ const Listing = mongoose.model('Listing', schema);
 
 const uid = (req) => req.headers['x-user-id'];
 const role = (req) => req.headers['x-user-role'];
+
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 app.get('/health', (req,res)=>res.json({ok:true,service:'listing'}));
 
@@ -46,8 +50,25 @@ app.post('/', async (req,res)=>{
     if (!['donor','admin'].includes(r)) return res.status(403).json({ok:false,error:'donor only'});
     const err = validate(req.body);
     if (err) return res.status(400).json({ok:false,error:err});
-    const doc = await Listing.create({ ...req.body, qty: Number(req.body.qty), veg: !!req.body.veg, donorId: uid(req), donorName: req.headers['x-user-name']||'' });
+    const donorPhone = req.body.donorPhone || req.body.phone || req.headers['x-user-phone'] || '';
+    const doc = await Listing.create({
+      ...req.body,
+      qty: Number(req.body.qty),
+      veg: !!req.body.veg,
+      donorId: uid(req),
+      donorName: req.headers['x-user-name']||'',
+      phone: donorPhone,
+      donorPhone,
+    });
     res.json({ok:true,data:doc});
+  } catch(e){res.status(500).json({ok:false,error:e.message});}
+});
+
+// distinct cities for validated dropdowns / auto-suggest
+app.get('/cities', async (req,res)=>{
+  try {
+    const cities = await Listing.distinct('city');
+    res.json({ok:true,data:cities.filter(Boolean).sort()});
   } catch(e){res.status(500).json({ok:false,error:e.message});}
 });
 
@@ -56,12 +77,22 @@ app.get('/', async (req,res)=>{
   try {
     const { city, veg, available, mine } = req.query;
     const q = {};
-    if (city) q.city = new RegExp('^'+city.trim()+'$','i');
+    if (city && city.trim()) q.city = new RegExp(escapeRegex(city.trim()), 'i');
     if (veg === 'true') q.veg = true;
     if (veg === 'false') q.veg = false;
     if (available === '1') { q.status = 'POSTED'; q.expiryAt = { $gt: new Date() }; }
     if (mine === '1') q.donorId = uid(req);
-    const docs = await Listing.find(q).sort({ expiryAt: 1 }).limit(100);
+    let docs = await Listing.find(q).sort({ expiryAt: 1 }).limit(100);
+    // distance-aware ordering: exact city match first, then expiry ascending
+    if (city && city.trim()) {
+      const target = city.trim().toLowerCase();
+      docs.sort((a, b) => {
+        const aExact = (a.city || '').toLowerCase() === target ? 0 : 1;
+        const bExact = (b.city || '').toLowerCase() === target ? 0 : 1;
+        if (aExact !== bExact) return aExact - bExact;
+        return new Date(a.expiryAt) - new Date(b.expiryAt);
+      });
+    }
     // hide OTP unless owner/admin
     const out = docs.map(d=>{
       const o = d.toObject();

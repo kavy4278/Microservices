@@ -7,9 +7,9 @@ app.use(express.json());
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://mongo:27017/maindb';
 
 const listingSchema = new mongoose.Schema({
-  donorId: String, title: String, qty: Number, veg: Boolean,
+  donorId: String, donorName: String, title: String, qty: Number, veg: Boolean,
   cookedAt: Date, expiryAt: Date, city: String, address: String,
-  photoUrl: String, status: String, otp: String,
+  photoUrl: String, status: String, otp: String, phone: String, donorPhone: String,
 }, { timestamps: true, collection: 'listings' });
 const Listing = mongoose.model('Listing', listingSchema);
 
@@ -21,6 +21,7 @@ const claimSchema = new mongoose.Schema({
   ngoId: { type: String, required: true },
   ngoName: { type: String, default: '' },
   riderId: { type: String, default: '' },
+  riderName: { type: String, default: '' },
   status: { type: String, enum: ['CLAIMED','PICKED_UP','DELIVERED','CANCELLED'], default: 'CLAIMED' },
   timeline: { type: Array, default: [] },
 }, { timestamps: true });
@@ -67,6 +68,12 @@ app.get('/', async (req,res)=>{
     for(const c of docs){
       const o=c.toObject(); const l=await Listing.findById(c.listingId);
       o.otp = l?l.otp:undefined; o.listingStatus=l?l.status:undefined;
+      if (['ngo', 'rider', 'admin'].includes(r)) {
+        const phone = l ? (l.donorPhone || l.phone || '') : '';
+        if (phone) o.donorPhone = phone;
+        const donorName = l ? (l.donorName || '') : '';
+        if (donorName) o.donorName = donorName;
+      }
       out.push(o);
     }
     res.json({ok:true,data:out});
@@ -80,7 +87,7 @@ app.patch('/:id/pickup', async (req,res)=>{
   const l=await Listing.findById(c.listingId);
   if(!l) return res.status(404).json({ok:false,error:'listing gone'});
   if(String(req.body.otp)!==String(l.otp)) return res.status(400).json({ok:false,error:'wrong OTP'});
-  c.status='PICKED_UP'; c.riderId=uid(req); c.timeline.push({at:new Date(),by:uid(req),msg:'picked up'});
+  c.status='PICKED_UP'; c.riderId=uid(req); c.riderName=uname(req); c.timeline.push({at:new Date(),by:uid(req),msg:'picked up'});
   await c.save(); l.status='PICKED_UP'; await l.save();
   res.json({ok:true,data:c});
 });
@@ -89,6 +96,10 @@ app.patch('/:id/deliver', async (req,res)=>{
   const c=await Claim.findById(req.params.id);
   if(!c) return res.status(404).json({ok:false,error:'not found'});
   if(c.status!=='PICKED_UP') return res.status(400).json({ok:false,error:'pick up first'});
+  // permission gate: only the assigned rider can mark delivery (admin retains override)
+  if(role(req)!=='admin' && String(c.riderId)!==uid(req)){
+    return res.status(403).json({ok:false,error:'only the assigned rider can mark delivery'});
+  }
   c.status='DELIVERED'; c.timeline.push({at:new Date(),by:uid(req),msg:'delivered'});
   await c.save();
   const l=await Listing.findById(c.listingId); if(l){l.status='DELIVERED'; await l.save();}
