@@ -9,6 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || 'devsecret123';
+const INTERNAL_KEY = process.env.INTERNAL_KEY || JWT_SECRET;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://mongo:27017/authdb';
 
 const userSchema = new mongoose.Schema({
@@ -25,6 +26,17 @@ const sign = (u) => jwt.sign({ id: u._id.toString(), role: u.role, name: u.name,
 const pub = (u) => ({ _id: u._id, name: u.name, email: u.email, role: u.role, org: u.org, phone: u.phone || '' });
 
 app.get('/health', (req, res) => res.json({ ok: true, service: 'auth' }));
+
+// internal: notify-service expands role broadcasts into per-user notifications
+app.get('/internal/users', async (req, res) => {
+  try {
+    if (String(req.headers['x-internal-key'] || '') !== String(INTERNAL_KEY)) return res.status(403).json({ ok: false, error: 'forbidden' });
+    const role = String(req.query.role || '').toLowerCase();
+    const q = ['admin', 'donor', 'ngo', 'rider'].includes(role) ? { role } : {};
+    const users = await User.find(q).select('_id role').limit(2000);
+    res.json({ ok: true, data: users });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
 
 app.post('/register', async (req, res) => {
   try {

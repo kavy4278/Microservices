@@ -159,15 +159,15 @@ o.photoUrl = l ? l.photoUrl : undefined;
 ## Suggested implementation order (one-go checklist)
 
 ```
-[ ] 1. notify-service: Notification model + broadcastToUser() helper
-[ ] 2. api-gateway: SSE stream endpoint GET /api/notify/stream (JWT auth)
-[ ] 3. claim-service: broadcast on claim create / pickup / deliver
-[ ] 4. listing-service: broadcast on status change; timeline entries
-[ ] 5. Frontend: EventSource client + unread badge in Shell nav
-[ ] 6. Frontend: Alerts tab live feed
-[ ] 7. Frontend: photo thumbnail in ClaimCard + OtpModal + FoodCard
-[ ] 8. Frontend: admin live activity panel (optional phase 2)
-[ ] 9. E2E test: two browsers, donor posts → NGO claims → rider picks up → rider delivers; verify live badges + photos + notifications
+[x] 1. notify-service: Notification model + broadcastToUser() helper
+[x] 2. api-gateway: SSE stream endpoint GET /api/notify/stream (JWT auth)
+[x] 3. claim-service: broadcast on claim create / pickup / deliver
+[x] 4. listing-service: broadcast on status change; timeline entries
+[x] 5. Frontend: EventSource client + unread badge in Shell nav
+[x] 6. Frontend: Alerts tab live feed
+[x] 7. Frontend: photo thumbnail in ClaimCard + OtpModal + FoodCard
+[x] 8. Frontend: admin live activity panel (optional phase 2)
+[x] 9. E2E test: two browsers, donor posts → NGO claims → rider picks up → rider delivers; verify live badges + photos + notifications
 ```
 
 ---

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { api } from '../api.js';
+import { api, eventStreamUrl } from '../api.js';
 import { Icon } from '../icons.jsx';
 import {
   Button, Field, Modal, Spinner, EmptyState, StatCard, Stepper,
@@ -271,6 +271,12 @@ function OtpModal({ open, claim, onClose, onSubmit, busy }) {
           Enter the 4-digit code shown to the donor for <strong>{claim?.listingTitle || 'this listing'}</strong>.
           This confirms the food changed hands.
         </p>
+        {claim?.photoUrl && (
+          <div className="otp-photo">
+            <FoodImage src={claim.photoUrl} emoji={claim.veg === false ? '🍗' : '🥗'} />
+            <p className="muted small" style={{ margin: '8px 0 0' }}>Confirm this is the food being handed over.</p>
+          </div>
+        )}
         {claim?.donorPhone && (
           <p className="small mb-2" style={{ color: 'var(--forest)' }}>
             <Icon name="phone" size={14} /> Contact donor: <a href={`tel:${claim.donorPhone}`} style={{ color: 'inherit', fontWeight: 600 }}>{claim.donorPhone}</a>{claim.donorName ? ` (${claim.donorName})` : ''}
@@ -298,14 +304,29 @@ function ClaimCard({ c, role, onPickup, onDeliver, onDelete }) {
   return (
     <div className="panel" style={{ padding: 18 }}>
       <div className="between mb-2">
-        <strong style={{ fontFamily: 'var(--font-head)' }}>{c.listingTitle || 'Listing'}</strong>
+        <div className="row" style={{ gap: 10, minWidth: 0 }}>
+          <div className="claim-thumb"><FoodImage src={c.photoUrl} emoji={c.veg === false ? '🍗' : '🥗'} /></div>
+          <strong style={{ fontFamily: 'var(--font-head)' }}>{c.listingTitle || 'Listing'}</strong>
+        </div>
         <StatusBadge status={c.status} />
       </div>
       <div className="food-meta mb-3">
         <span><Icon name="package" size={15} /> {c.qty} servings</span>
         <span><Icon name="mapPin" size={15} /> {c.city}</span>
         <span><Icon name="calendar" size={15} /> {fmt(c.createdAt)}</span>
+        {c.updatedAt && c.updatedAt !== c.createdAt && <span><Icon name="refresh" size={15} /> {fmt(c.updatedAt)}</span>}
       </div>
+      {(c.timeline || []).length > 0 && (
+        <div className="claim-timeline mb-3">
+          {[...c.timeline].reverse().slice(0, 4).map((t, i) => (
+            <div key={`${t.at || i}-${i}`} className="claim-timeline-row">
+              <span className="claim-timeline-dot" />
+              <span className="small">{t.msg ? String(t.msg).replace(/_/g, ' ') : 'update'}{t.byName ? ` · ${t.byName}` : ''}</span>
+              <span className="muted small">{fmt(t.at)}</span>
+            </div>
+          ))}
+        </div>
+      )}
       {c.riderId && (
         <div className="mb-2">
           <span className="badge badge-picked" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
@@ -355,6 +376,8 @@ export default function AppHome({ user, onLogout }) {
   const [filters, setFilters] = useState({ city: '', veg: '' });
   const [otpClaim, setOtpClaim] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [unread, setUnread] = useState(0);
+  const refreshTimer = useRef(null);
 
   const load = useCallback(async (spinner = true) => {
     if (spinner) setLoading(true); else setRefreshing(true);
@@ -369,10 +392,81 @@ export default function AppHome({ user, onLogout }) {
     if (role === 'admin') { try { next.users = await api('/api/users'); } catch { /* noop */ } }
     try { next.notes = await api('/api/notify'); } catch { /* noop */ }
     setData((prev) => ({ ...prev, ...next }));
+    if (next.notes) setUnread((next.notes || []).filter((n) => !n.read).length);
     setLoading(false); setRefreshing(false);
   }, [user.role]); // eslint-disable-line
 
   useEffect(() => { load(); }, [load]);
+
+  const scheduleRefresh = useCallback(() => {
+    if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    refreshTimer.current = setTimeout(() => load(false), 450);
+  }, [load]);
+
+  const applyStatusChange = useCallback((ev) => {
+    if (!ev || !ev.entityId) return;
+    const patch = (arr) => (arr || []).map((x) => {
+      if (x._id !== ev.entityId) return x;
+      return {
+        ...x,
+        status: ev.status || x.status,
+        updatedAt: ev.at || x.updatedAt,
+        timeline: ev.timeline ? [...(x.timeline || []), ev.timeline] : x.timeline,
+      };
+    });
+    setData((prev) => {
+      if (ev.entityType === 'listing') {
+        return { ...prev, mine: patch(prev.mine), available: patch(prev.available), all: patch(prev.all) };
+      }
+      if (ev.entityType === 'claim') return { ...prev, claims: patch(prev.claims) };
+      return prev;
+    });
+  }, []);
+
+  // Live notifications + status updates over one authenticated SSE connection.
+  useEffect(() => {
+    const url = eventStreamUrl();
+    if (!url || typeof EventSource === 'undefined') return undefined;
+    const es = new EventSource(url);
+
+    es.addEventListener('notification', (e) => {
+      try {
+        const n = JSON.parse(e.data);
+        setData((prev) => {
+          const notes = prev.notes || [];
+          if (n._id && notes.some((x) => x._id === n._id)) return prev;
+          return { ...prev, notes: [n, ...notes].slice(0, 100) };
+        });
+        setUnread((u) => u + 1);
+        toast(n.body || n.title || 'New notification', { title: n.title || 'Notification' });
+      } catch { /* ignore malformed event */ }
+    });
+
+    es.addEventListener('status_changed', (e) => {
+      try { applyStatusChange(JSON.parse(e.data)); scheduleRefresh(); } catch { /* ignore malformed event */ }
+    });
+
+    es.onerror = () => { /* EventSource reconnects automatically */ };
+
+    return () => {
+      es.close();
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    };
+  }, [applyStatusChange, scheduleRefresh, toast]);
+
+  // Opening the notifications tab clears the unread badge (persisted server-side).
+  useEffect(() => {
+    if (view !== 'alerts' || unread === 0) return undefined;
+    let alive = true;
+    api('/api/notify/read-all', { method: 'PATCH' })
+      .then(() => {
+        if (!alive) return;
+        setUnread(0);
+        setData((prev) => ({ ...prev, notes: (prev.notes || []).map((n) => ({ ...n, read: true })) }));
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [view, unread]);
 
   const search = async () => {
     const qs = new URLSearchParams({ available: '1', city: filters.city, veg: filters.veg }).toString();
@@ -516,7 +610,7 @@ export default function AppHome({ user, onLogout }) {
 
   /* -------- Browse -------- */
   const Browse = () => {
-    const items = data.available || [];
+    const items = (data.available || []).filter((l) => l.status === 'POSTED');
     const canClaim = user.role === 'ngo' || user.role === 'admin';
     const citiesWithFood = Array.from(new Set(items.map((l) => l.city).filter(Boolean))).sort();
 
@@ -695,7 +789,20 @@ export default function AppHome({ user, onLogout }) {
       }));
       if (!(c.timeline || []).length) events.push({ id: c._id, at: c.createdAt, msg: `Claim on ${c.listingTitle || 'a listing'}`, icon: 'handHeart' });
     });
-    (data.notes || []).forEach((n) => events.push({ id: n._id || Math.random(), at: n.createdAt, msg: n.message || n.type || 'Activity', icon: 'bell' }));
+    (data.notes || []).forEach((n) => {
+      const icon = n.type === 'delivery_confirmed' ? 'checkCircle'
+        : n.type === 'delivery_assigned' || n.type === 'pickup_ready' ? 'bike'
+          : n.type === 'window_expiring' ? 'clock'
+            : n.type === 'listing_claimed' || n.type === 'listing_posted' ? 'handHeart' : 'bell';
+      events.push({
+        id: n._id || `${n.type}-${n.createdAt}-${Math.random()}`,
+        at: n.createdAt || n.updatedAt,
+        msg: n.title || n.message || n.type || 'Activity',
+        body: n.body || '',
+        icon,
+        unread: !n.read,
+      });
+    });
     events.sort((a, b) => new Date(b.at) - new Date(a.at));
 
     return (
@@ -706,10 +813,11 @@ export default function AppHome({ user, onLogout }) {
         ) : (
           <div className="panel" style={{ padding: 8 }}>
             {events.slice(0, 40).map((n) => (
-              <div key={n.id} className="row" style={{ padding: '13px 14px', borderBottom: '1px solid var(--border)' }}>
+              <div key={n.id} className="row" style={{ padding: '13px 14px', borderBottom: '1px solid var(--border)', background: n.unread ? 'var(--sage)' : 'transparent', borderRadius: n.unread ? 10 : 0 }}>
                 <span className="feature-ico" style={{ width: 36, height: 36, margin: 0, borderRadius: 10, flex: '0 0 auto' }}><Icon name={n.icon} size={17} /></span>
                 <div className="grow">
-                  <div className="small" style={{ textTransform: 'capitalize' }}>{n.msg}</div>
+                  <div className="small" style={{ textTransform: 'capitalize', fontWeight: n.unread ? 700 : 400 }}>{n.msg}</div>
+                  {n.body && <div className="muted small">{n.body}</div>}
                   <div className="muted small">{fmt(n.at)}</div>
                 </div>
               </div>
@@ -735,7 +843,7 @@ export default function AppHome({ user, onLogout }) {
   return (
     <>
       <Shell user={user} nav={nav} active={view} onNav={setView} onLogout={onLogout} onHome={() => setView('overview')}
-        title={title} onRefresh={() => load(false)} refreshing={refreshing}>
+        title={title} onRefresh={() => load(false)} refreshing={refreshing} unread={unread}>
         {body()}
       </Shell>
       <OtpModal open={!!otpClaim} claim={otpClaim} onClose={() => setOtpClaim(null)} onSubmit={doPickup} busy={busy} />
