@@ -144,34 +144,6 @@ app.get('/', async (req,res)=>{
 });
 
 app.patch('/:id/pickup', async (req,res)=>{
-<<<<<<< HEAD
-  if(role(req)!=='rider' && role(req)!=='admin'){
-    return res.status(403).json({ok:false,error:'only riders can pick up'});
-  }
-  const c=await Claim.findById(req.params.id);
-  if(!c) return res.status(404).json({ok:false,error:'not found'});
-  if(c.status!=='CLAIMED') return res.status(400).json({ok:false,error:'not in CLAIMED'});
-  const l=await Listing.findById(c.listingId);
-  if(!l) return res.status(404).json({ok:false,error:'listing gone'});
-  if(String(req.body.otp)!==String(l.otp)) return res.status(400).json({ok:false,error:'wrong OTP'});
-  c.status='PICKED_UP'; c.riderId=uid(req); c.riderName=uname(req); c.timeline.push({at:new Date(),by:uid(req),msg:'picked up'});
-  await c.save(); l.status='PICKED_UP'; await l.save();
-  res.json({ok:true,data:c});
-});
-
-app.patch('/:id/deliver', async (req,res)=>{
-  const c=await Claim.findById(req.params.id);
-  if(!c) return res.status(404).json({ok:false,error:'not found'});
-  if(c.status!=='PICKED_UP') return res.status(400).json({ok:false,error:'pick up first'});
-  // permission gate: only the assigned rider can mark delivery (admin retains override)
-  if(role(req)!=='admin' && (role(req)!=='rider' || String(c.riderId)!==uid(req))){
-    return res.status(403).json({ok:false,error:'only the assigned rider can mark delivery'});
-  }
-  c.status='DELIVERED'; c.timeline.push({at:new Date(),by:uid(req),msg:'delivered'});
-  await c.save();
-  const l=await Listing.findById(c.listingId); if(l){l.status='DELIVERED'; await l.save();}
-  res.json({ok:true,data:c});
-=======
   try{
     if(!['rider','admin'].includes(role(req))) return res.status(403).json({ok:false,error:'rider only'});
     const c=await Claim.findById(req.params.id);
@@ -228,7 +200,6 @@ app.patch('/:id/deliver', async (req,res)=>{
 
     res.json({ok:true,data:c});
   }catch(e){res.status(500).json({ok:false,error:e.message});}
->>>>>>> efe8ece3f83f4003b7b941e40c6c95278bbd391c
 });
 
 app.delete('/:id', async (req,res)=>{
