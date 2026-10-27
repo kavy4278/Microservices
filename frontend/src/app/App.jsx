@@ -119,12 +119,7 @@ function PostForm({ user, onPosted }) {
     setF((prev) => ({ ...prev, city: val }));
   };
 
-  // Tracks whether the donor actually edited "Safe until". The default above is computed
-  // once at mount, so a form left open for hours would silently fall below the 2h floor
-  // and fail on submit even though the donor changed nothing — untouched values get
-  // refreshed automatically instead of raising an error.
   const [touchedExpiry, setTouchedExpiry] = useState(false);
-
   const expTs = f.expiryAt ? new Date(f.expiryAt).getTime() : NaN;
 
   const submit = async (e) => {
@@ -706,7 +701,20 @@ function AlertsView({ data, loading }) {
     }));
     if (!(c.timeline || []).length) events.push({ id: c._id, at: c.createdAt, msg: `Claim on ${c.listingTitle || 'a listing'}`, icon: 'handHeart' });
   });
-  (data.notes || []).forEach((n) => events.push({ id: n._id || Math.random(), at: n.createdAt, msg: n.message || n.type || 'Activity', icon: 'bell' }));
+  (data.notes || []).forEach((n) => {
+    const icon = n.type === 'delivery_confirmed' ? 'checkCircle'
+      : n.type === 'delivery_assigned' || n.type === 'pickup_ready' ? 'bike'
+        : n.type === 'window_expiring' ? 'clock'
+          : n.type === 'listing_claimed' || n.type === 'listing_posted' ? 'handHeart' : 'bell';
+    events.push({
+      id: n._id || `${n.type}-${n.createdAt}-${Math.random()}`,
+      at: n.createdAt || n.updatedAt,
+      msg: n.title || n.message || n.type || 'Activity',
+      body: n.body || '',
+      icon,
+      unread: !n.read,
+    });
+  });
   events.sort((a, b) => new Date(b.at) - new Date(a.at));
 
   return (
@@ -717,10 +725,11 @@ function AlertsView({ data, loading }) {
       ) : (
         <div className="panel" style={{ padding: 8 }}>
           {events.slice(0, 40).map((n) => (
-            <div key={n.id} className="row" style={{ padding: '13px 14px', borderBottom: '1px solid var(--border)' }}>
+            <div key={n.id} className="row" style={{ padding: '13px 14px', borderBottom: '1px solid var(--border)', background: n.unread ? 'var(--sage)' : 'transparent', borderRadius: n.unread ? 10 : 0 }}>
               <span className="feature-ico" style={{ width: 36, height: 36, margin: 0, borderRadius: 10, flex: '0 0 auto' }}><Icon name={n.icon} size={17} /></span>
               <div className="grow">
-                <div className="small" style={{ textTransform: 'capitalize' }}>{n.msg}</div>
+                <div className="small" style={{ textTransform: 'capitalize', fontWeight: n.unread ? 700 : 400 }}>{n.msg}</div>
+                {n.body && <div className="muted small">{n.body}</div>}
                 <div className="muted small">{fmt(n.at)}</div>
               </div>
             </div>
@@ -760,25 +769,10 @@ export default function AppHome({ user, onLogout }) {
     setData((prev) => ({ ...prev, ...next }));
     if (next.notes) setUnread((next.notes || []).filter((n) => !n.read).length);
     setLoading(false); setRefreshing(false);
-  }, [user.role]); // eslint-disable-line
+  }, [user.role]);
 
   useEffect(() => { load(); }, [load]);
 
-<<<<<<< HEAD
-  const search = async (customFilters) => {
-    const f = customFilters || filters;
-    const qs = new URLSearchParams({ available: '1', city: f.city || '', veg: f.veg || '' }).toString();
-    try {
-      setData((d) => ({ ...d, available: [] }));
-      setLoading(true);
-      const r = await api('/api/listings?' + qs);
-      setData((d) => ({ ...d, available: r }));
-    } catch (e) {
-      toast(e.message, { error: true });
-    } finally {
-      setLoading(false);
-    }
-=======
   const scheduleRefresh = useCallback(() => {
     if (refreshTimer.current) clearTimeout(refreshTimer.current);
     refreshTimer.current = setTimeout(() => load(false), 450);
@@ -803,6 +797,21 @@ export default function AppHome({ user, onLogout }) {
       return prev;
     });
   }, []);
+
+  const search = async (customFilters) => {
+    const f = customFilters || filters;
+    const qs = new URLSearchParams({ available: '1', city: f.city || '', veg: f.veg || '' }).toString();
+    try {
+      setData((d) => ({ ...d, available: [] }));
+      setLoading(true);
+      const r = await api('/api/listings?' + qs);
+      setData((d) => ({ ...d, available: r }));
+    } catch (e) {
+      toast(e.message, { error: true });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Live notifications + status updates over one authenticated SSE connection.
   useEffect(() => {
@@ -849,14 +858,6 @@ export default function AppHome({ user, onLogout }) {
     return () => { alive = false; };
   }, [view, unread]);
 
-  const search = async () => {
-    const qs = new URLSearchParams({ available: '1', city: filters.city, veg: filters.veg }).toString();
-    try { setData((d) => ({ ...d, available: [] })); setLoading(true); const r = await api('/api/listings?' + qs); setData((d) => ({ ...d, available: r })); }
-    catch (e) { toast(e.message, { error: true }); }
-    finally { setLoading(false); }
->>>>>>> efe8ece3f83f4003b7b941e40c6c95278bbd391c
-  };
-
   const post = async () => { setView('mine'); load(false); };
   const claim = async (id) => {
     try { await api('/api/claims', { method: 'POST', body: JSON.stringify({ listingId: id }) }); toast('Listing claimed. A rider will confirm the pickup code.', { title: 'Claimed' }); load(false); }
@@ -896,323 +897,6 @@ export default function AppHome({ user, onLogout }) {
   const nav = NAV[user.role] || NAV.donor;
   const title = (nav.find((n) => n.key === view) || nav[0]).label;
 
-<<<<<<< HEAD
-=======
-  /* -------- Overview -------- */
-  const Overview = () => {
-    let cards = [];
-    let recent = [];
-    if (user.role === 'donor') {
-      const mine = data.mine || [];
-      cards = [
-        ['list', 'My listings', mine.length],
-        ['package', 'Awaiting pickup', mine.filter((l) => l.status === 'POSTED' || l.status === 'CLAIMED').length],
-        ['checkCircle', 'Delivered', mine.filter((l) => l.status === 'DELIVERED').length],
-        ['handHeart', 'Meals rescued', meals],
-      ];
-      recent = mine.slice(0, 4);
-    } else if (user.role === 'ngo') {
-      const claims = data.claims || [];
-      cards = [
-        ['search', 'Food available now', (data.available || []).length],
-        ['package', 'Active claims', claims.filter((c) => c.status === 'CLAIMED' || c.status === 'PICKED_UP').length],
-        ['checkCircle', 'Delivered', claims.filter((c) => c.status === 'DELIVERED').length],
-        ['handHeart', 'Meals received', meals],
-      ];
-      recent = (data.available || []).slice(0, 4);
-    } else if (user.role === 'rider') {
-      const claims = data.claims || [];
-      cards = [
-        ['bike', 'Open pickups', claims.filter((c) => c.status === 'CLAIMED').length],
-        ['route', 'In transit', claims.filter((c) => c.status === 'PICKED_UP').length],
-        ['checkCircle', 'Delivered', claims.filter((c) => c.status === 'DELIVERED').length],
-        ['handHeart', 'Meals moved', meals],
-      ];
-      recent = claims.filter((c) => c.status !== 'DELIVERED').slice(0, 4);
-    } else {
-      const all = data.all || [];
-      cards = [
-        ['list', 'Total listings', all.length],
-        ['package', 'Available now', all.filter((l) => l.status === 'POSTED').length],
-        ['checkCircle', 'Delivered', all.filter((l) => l.status === 'DELIVERED').length],
-        ['users', 'Members', (data.users || []).length],
-      ];
-      recent = all.slice(0, 4);
-    }
-    return (
-      <div className="stack gap-2" style={{ gap: 22 }}>
-        <div className="stat-grid">
-          {cards.map(([ico, label, val]) => <StatCard key={label} icon={ico} label={label} value={val} />)}
-        </div>
-        <div className="grid" style={{ gridTemplateColumns: 'minmax(0,1.5fr) minmax(0,1fr)', alignItems: 'start' }}>
-          <div className="panel" style={{ padding: 22 }}>
-            <div className="between mb-3">
-              <h3>{user.role === 'rider' ? 'Your active runs' : user.role === 'admin' ? 'Recent listings' : 'Recent activity'}</h3>
-              <Button size="sm" variant="secondary" icon="refresh" onClick={() => load(false)}>Refresh</Button>
-            </div>
-            {loading ? <Spinner /> : recent.length === 0 ? (
-              <EmptyState icon={user.role === 'rider' ? 'bike' : 'package'} title="Nothing here yet">
-                {user.role === 'donor' ? 'Post your first surplus listing to get started.' : user.role === 'admin' ? 'No listings have been created yet.' : 'New food will appear here as it is posted.'}
-              </EmptyState>
-            ) : (
-            <div className="stack gap-2">
-                {recent.map((x) => (
-                  <div key={x._id} className="between" style={{ paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
-                    <div>
-                      <strong className="small">{x.title || x.listingTitle}</strong>
-                      <div className="muted small">{x.qty} servings · {x.city}</div>
-                    </div>
-                    <StatusBadge status={x.status} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="panel" style={{ padding: 22 }}>
-            <h3 className="mb-3">Quick actions</h3>
-            <div className="stack gap-2">
-              {user.role === 'donor' && <Button className="btn-block" icon="plus" onClick={() => setView('post')}>Post surplus food</Button>}
-              {(user.role === 'ngo' || user.role === 'admin') && <Button className="btn-block" icon="search" onClick={() => setView('browse')}>Find food nearby</Button>}
-              <Button variant="secondary" className="btn-block" icon="package" onClick={() => setView('claims')}>
-                {user.role === 'rider' ? 'View my pickups' : user.role === 'donor' ? 'Claims received' : 'View claims'}
-              </Button>
-              <div className="card" style={{ background: 'var(--sage)', border: 0, boxShadow: 'none' }}>
-                <div className="row" style={{ gap: 10 }}>
-                  <Icon name="handHeart" size={20} style={{ color: 'var(--forest)' }} />
-                  <div>
-                    <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700 }}>{meals} servings</div>
-                    <div className="muted small">delivered through your {user.role === 'rider' ? 'runs' : 'listings'}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  /* -------- Browse -------- */
-  const Browse = () => {
-    const items = (data.available || []).filter((l) => l.status === 'POSTED');
-    const canClaim = user.role === 'ngo' || user.role === 'admin';
-    const citiesWithFood = Array.from(new Set(items.map((l) => l.city).filter(Boolean))).sort();
-
-    const filterByCity = (cityName) => {
-      setFilters((prev) => ({ ...prev, city: cityName }));
-      const qs = new URLSearchParams({ available: '1', city: cityName, veg: filters.veg }).toString();
-      api('/api/listings?' + qs).then((r) => setData((d) => ({ ...d, available: r }))).catch(() => {});
-    };
-
-    return (
-      <div className="stack" style={{ gap: 18 }}>
-        <div className="panel" style={{ padding: 16 }}>
-          <div className="row" style={{ alignItems: 'flex-end' }}>
-            <div style={{ flex: 1, minWidth: 160 }}>
-              <Field label="City">
-                <input
-                  className="input"
-                  list="browse-cities-list"
-                  placeholder="Filter by city (e.g. Mumbai or Mumb)"
-                  value={filters.city}
-                  onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-                  onKeyDown={(e) => e.key === 'Enter' && search()}
-                />
-                <datalist id="browse-cities-list">
-                  {citiesWithFood.map((c) => <option key={c} value={c} />)}
-                </datalist>
-              </Field>
-            </div>
-            <div style={{ minWidth: 150 }}>
-              <Field label="Food type">
-                <select className="select" value={filters.veg} onChange={(e) => setFilters({ ...filters, veg: e.target.value })}>
-                  <option value="">All food</option>
-                  <option value="true">Vegetarian</option>
-                  <option value="false">Non-vegetarian</option>
-                </select>
-              </Field>
-            </div>
-            <div style={{ paddingBottom: 14 }}><Button icon="search" onClick={search}>Search</Button></div>
-          </div>
-          {citiesWithFood.length > 0 && (
-            <div className="mt-2" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span className="muted small" style={{ fontWeight: 600 }}>Cities with food:</span>
-              <button
-                type="button"
-                className={`chip ${!filters.city ? 'active' : ''}`}
-                onClick={() => filterByCity('')}
-              >
-                All
-              </button>
-              {citiesWithFood.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  className={`chip ${filters.city.toLowerCase() === c.toLowerCase() ? 'active' : ''}`}
-                  onClick={() => filterByCity(filters.city.toLowerCase() === c.toLowerCase() ? '' : c)}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        {loading ? <Spinner /> : items.length === 0 ? (
-          <EmptyState icon="search" title="No food matches yet" action={<Button variant="secondary" icon="refresh" onClick={() => { setFilters({ city: '', veg: '' }); setTimeout(search, 0); }}>Clear filters</Button>}>
-            Try a different city or food type. New listings appear here the moment they’re posted.
-          </EmptyState>
-        ) : (
-          <div className="food-grid">
-            {items.map((l) => (
-              <FoodCard key={l._id} l={l}>
-                {canClaim && l.status === 'POSTED' && <Button size="sm" icon="handHeart" onClick={() => claim(l._id)}>Claim</Button>}
-              </FoodCard>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  /* -------- My / All listings -------- */
-  const Listings = () => {
-    const items = user.role === 'admin' ? (data.all || []) : (data.mine || []);
-    const canDelete = user.role === 'donor' || user.role === 'admin';
-    return (
-      <div className="stack" style={{ gap: 18 }}>
-        <div className="between">
-          <p className="muted small">{items.length} listing{items.length === 1 ? '' : 's'}{user.role === 'donor' ? ' posted by you' : ''}</p>
-          {user.role === 'donor' && <Button size="sm" icon="plus" onClick={() => setView('post')}>Post surplus</Button>}
-        </div>
-        {loading ? <Spinner /> : items.length === 0 ? (
-          <EmptyState icon="list" title="No listings yet" action={user.role === 'donor' && <Button icon="plus" onClick={() => setView('post')}>Post your first listing</Button>}>
-            {user.role === 'donor' ? 'Your posted surplus food will appear here.' : 'Listings created across the network will appear here.'}
-          </EmptyState>
-        ) : (
-          <div className="food-grid">
-            {items.map((l) => (
-              <FoodCard key={l._id} l={l}>
-                {l.otp && (
-                  <span className="row" style={{ gap: 8 }}>
-                    <span className="muted small">Code</span>
-                    <span className="mono badge badge-sage" style={{ letterSpacing: '.2em' }}>{l.otp}</span>
-                  </span>
-                )}
-                {canDelete && <Button size="sm" variant="danger" icon="xCircle" style={{ marginLeft: 'auto' }} onClick={() => delListing(l)}>Delete</Button>}
-              </FoodCard>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  /* -------- Claims -------- */
-  const Claims = () => {
-    const claims = data.claims || [];
-    return (
-      <div className="stack" style={{ gap: 18 }}>
-        <p className="muted small">
-          {user.role === 'rider' ? 'Pickups assigned to the network. Verify the code at the donor, then mark delivery.'
-            : user.role === 'ngo' ? 'Food you have claimed. A rider will collect it using the shared code.'
-            : user.role === 'donor' ? 'Claims NGOs have made on your listings. Share the code with the rider at pickup.'
-            : 'Every claim across the network.'}
-        </p>
-        {loading ? <Spinner /> : claims.length === 0 ? (
-          <EmptyState icon="package" title="No claims yet">
-            {user.role === 'ngo' ? 'Claim a listing from Find food to see it here.' : 'Claims will appear here as NGOs reserve food.'}
-          </EmptyState>
-        ) : (
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px,1fr))' }}>
-            {claims.map((c) => (
-              <ClaimCard key={c._id} c={c} role={user.role} onPickup={setOtpClaim} onDeliver={deliver} onDelete={delClaim} />
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  /* -------- Users -------- */
-  const Users = () => {
-    const users = data.users || [];
-    const roleBadge = { admin: 'badge-expired', donor: 'badge-posted', ngo: 'badge-claimed', rider: 'badge-picked' };
-    return (
-      <div className="stack" style={{ gap: 18 }}>
-        <p className="muted small">{users.length} member{users.length === 1 ? '' : 's'} in the network</p>
-        {loading ? <Spinner /> : (
-          <div className="table-wrap">
-            <table className="data">
-              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Organisation</th><th>Joined</th></tr></thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u._id}>
-                    <td><strong>{u.name}</strong></td>
-                    <td className="muted">{u.email}</td>
-                    <td><span className={`badge ${roleBadge[u.role] || 'badge-outline'}`}>{u.role}</span></td>
-                    <td className="muted">{u.org || '—'}</td>
-                    <td className="muted">{fmt(u.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  /* -------- Notifications -------- */
-  const Alerts = () => {
-    const events = [];
-    (data.claims || []).forEach((c) => {
-      (c.timeline || []).forEach((t, i) => events.push({
-        id: `${c._id}-t${i}`, at: t.at,
-        msg: `${c.listingTitle || 'Listing'} — ${t.msg}`,
-        icon: t.msg === 'delivered' ? 'checkCircle' : t.msg === 'picked up' ? 'bike' : 'handHeart',
-      }));
-      if (!(c.timeline || []).length) events.push({ id: c._id, at: c.createdAt, msg: `Claim on ${c.listingTitle || 'a listing'}`, icon: 'handHeart' });
-    });
-    (data.notes || []).forEach((n) => {
-      const icon = n.type === 'delivery_confirmed' ? 'checkCircle'
-        : n.type === 'delivery_assigned' || n.type === 'pickup_ready' ? 'bike'
-          : n.type === 'window_expiring' ? 'clock'
-            : n.type === 'listing_claimed' || n.type === 'listing_posted' ? 'handHeart' : 'bell';
-      events.push({
-        id: n._id || `${n.type}-${n.createdAt}-${Math.random()}`,
-        at: n.createdAt || n.updatedAt,
-        msg: n.title || n.message || n.type || 'Activity',
-        body: n.body || '',
-        icon,
-        unread: !n.read,
-      });
-    });
-    events.sort((a, b) => new Date(b.at) - new Date(a.at));
-
-    return (
-      <div className="stack" style={{ gap: 18 }}>
-        <p className="muted small">Activity across your AnnBachao network.</p>
-        {loading ? <Spinner /> : events.length === 0 ? (
-          <EmptyState icon="bell" title="No activity yet">New listings, claims and deliveries will show up here.</EmptyState>
-        ) : (
-          <div className="panel" style={{ padding: 8 }}>
-            {events.slice(0, 40).map((n) => (
-              <div key={n.id} className="row" style={{ padding: '13px 14px', borderBottom: '1px solid var(--border)', background: n.unread ? 'var(--sage)' : 'transparent', borderRadius: n.unread ? 10 : 0 }}>
-                <span className="feature-ico" style={{ width: 36, height: 36, margin: 0, borderRadius: 10, flex: '0 0 auto' }}><Icon name={n.icon} size={17} /></span>
-                <div className="grow">
-                  <div className="small" style={{ textTransform: 'capitalize', fontWeight: n.unread ? 700 : 400 }}>{n.msg}</div>
-                  {n.body && <div className="muted small">{n.body}</div>}
-                  <div className="muted small">{fmt(n.at)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
->>>>>>> efe8ece3f83f4003b7b941e40c6c95278bbd391c
   const body = () => {
     switch (view) {
       case 'post': return <PostForm user={user} onPosted={post} />;
