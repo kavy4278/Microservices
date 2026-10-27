@@ -211,7 +211,7 @@ function PostForm({ user, onPosted }) {
             </Field>
           </div>
           <div style={{ flex: 1, minWidth: 180 }}>
-            <Field label="Pickup address"><input className="input" value={f.address} onChange={set('address')} placeholder="Street, area" /></Field>
+            <Field label="Pickup address"><input className="input" value={f.address} onChange={set('address')} placeholder="SG Highway, Ahmedabad" /></Field>
           </div>
           <div style={{ flex: 1, minWidth: 180 }}>
             <Field label="Contact number"><input className="input" type="tel" value={f.phone} onChange={set('phone')} placeholder="+91 98765 43210" /></Field>
@@ -500,7 +500,7 @@ function BrowseView({
               <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
                 <input
                   className="input"
-                  placeholder="Filter by city (e.g. Mumbai or Mumb)"
+                  placeholder="Filter by city (e.g. Ahmedabad or Amdavad)"
                   value={filters.city}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -693,14 +693,6 @@ function UsersView({ data, loading }) {
 /* --------------------------- Alerts view --------------------------- */
 function AlertsView({ data, loading }) {
   const events = [];
-  (data.claims || []).forEach((c) => {
-    (c.timeline || []).forEach((t, i) => events.push({
-      id: `${c._id}-t${i}`, at: t.at,
-      msg: `${c.listingTitle || 'Listing'} — ${t.msg}`,
-      icon: t.msg === 'delivered' ? 'checkCircle' : t.msg === 'picked up' ? 'bike' : 'handHeart',
-    }));
-    if (!(c.timeline || []).length) events.push({ id: c._id, at: c.createdAt, msg: `Claim on ${c.listingTitle || 'a listing'}`, icon: 'handHeart' });
-  });
   (data.notes || []).forEach((n) => {
     const icon = n.type === 'delivery_confirmed' ? 'checkCircle'
       : n.type === 'delivery_assigned' || n.type === 'pickup_ready' ? 'bike'

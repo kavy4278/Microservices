@@ -84,7 +84,7 @@ export default function Auth({ initialMode = 'login', initialRole = 'donor', onA
                     </Field>
                   </div>
                   <div style={{ flex: 1, minWidth: 150 }}>
-                    <Field label="Organisation" hint="Optional"><input className="input" value={f.org} onChange={set('org')} placeholder="Restaurant / NGO" /></Field>
+                    <Field label="Organisation" hint="Optional"><input className="input" value={f.org} onChange={set('org')} placeholder="SG Highway / Navrangpura" /></Field>
                   </div>
                 </div>
                 <Field label="Phone number" hint={f.role === 'donor' ? 'Required for donor' : 'Optional'}>
