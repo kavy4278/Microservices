@@ -1,4 +1,4 @@
-# Implementation Guide — AnnBachao MVP
+# Implementation Guide — Crumbly MVP
 
 ## Vertical Slices (build in order)
 ### Slice A — Auth (TASK-002/003)

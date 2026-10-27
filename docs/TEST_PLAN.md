@@ -1,4 +1,4 @@
-# Test Plan — AnnBachao
+# Test Plan — Crumbly
 
 ## Auth
 - [ ] Register donor/ngo/rider/admin works, duplicate email → 409

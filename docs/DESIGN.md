@@ -1,4 +1,4 @@
-# Design System — AnnBachao
+# Design System — Crumbly
 
 ## Style
 Warm, trust-first, food-rescue. Modern minimal, high contrast, big touch targets. No clutter — donor posts in <30s.
@@ -16,7 +16,7 @@ System stack + Inter fallback. H1 28px/700, H2 20px/700, Body 15px, Muted 13px. 
 - Radius 12px cards, 8px buttons. Header green gradient.
 
 ## Layout
-Top navbar: logo 🍛 AnnBachao + role badge + logout. Sidebar per role:
+Top navbar: logo 🍛 Crumbly + role badge + logout. Sidebar per role:
 - Donor: Post Food | My Listings | Leaderboard
 - NGO: Browse | My Claims | Leaderboard
 - Rider: Pickups | Log

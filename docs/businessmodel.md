@@ -1,4 +1,4 @@
-# Business Model — AnnBachao
+# Business Model — Crumbly
 
 **Surplus Food Rescue Network.** Connects restaurants, hotels, messes and caterers (donors) with nearby NGOs (beneficiaries) and volunteer riders to move safe surplus food before it expires — with an OTP-verified handover so every rescue is accountable.
 
@@ -6,7 +6,7 @@
 
 ## 1. Positioning
 
-AnnBachao is a **marketplace for surplus food**, not a charity portal. The core rescue loop (post → claim → pickup → deliver) stays free so supply stays high; monetization comes from the layers enterprises, logistics and impact-reporting buyers will pay for.
+Crumbly is a **marketplace for surplus food**, not a charity portal. The core rescue loop (post → claim → pickup → deliver) stays free so supply stays high; monetization comes from the layers enterprises, logistics and impact-reporting buyers will pay for.
 
 > Keep the rescue free. Charge for the value around it.
 
@@ -14,7 +14,7 @@ AnnBachao is a **marketplace for surplus food**, not a charity portal. The core 
 
 ## 2. Value Proposition by User
 
-| User | Pain today | AnnBachao value | Why they'd pay |
+| User | Pain today | Crumbly value | Why they'd pay |
 |------|-----------|-----------------|----------------|
 | **Donor** (restaurant / hotel / caterer) | Pays to dispose of surplus; no brand upside | Post in seconds, verifiable rescue, sustainability proof | Fee < disposal cost; tax + CSR credit; brand goodwill |
 | **NGO** (shelter / food bank) | Can't discover surplus in time | Live local listings, claim + track | Free supply — no direct charge |
@@ -106,8 +106,8 @@ The engine is **volume**: free access for small donors/NGOs maximizes listings �
 
 ## 8. Competitive Angle
 
-- **Vs. ad-hoc WhatsApp/phone coordination:** no tracking, no proof, no expiry guard — AnnBachao gives status + OTP accountability.
-- **Vs. generic food-donation directories:** they stop at discovery; AnnBachao owns the **verified pickup-to-delivery loop**, which is what makes the impact data (and thus the revenue) credible.
+- **Vs. ad-hoc WhatsApp/phone coordination:** no tracking, no proof, no expiry guard — Crumbly gives status + OTP accountability.
+- **Vs. generic food-donation directories:** they stop at discovery; Crumbly owns the **verified pickup-to-delivery loop**, which is what makes the impact data (and thus the revenue) credible.
 
 ---
 

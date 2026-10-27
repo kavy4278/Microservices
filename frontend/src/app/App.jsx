@@ -711,7 +711,7 @@ function AlertsView({ data, loading }) {
 
   return (
     <div className="stack" style={{ gap: 18 }}>
-      <p className="muted small">Activity across your AnnBachao network.</p>
+      <p className="muted small">Activity across your Crumbly network.</p>
       {loading ? <Spinner /> : events.length === 0 ? (
         <EmptyState icon="bell" title="No activity yet">New listings, claims and deliveries will show up here.</EmptyState>
       ) : (

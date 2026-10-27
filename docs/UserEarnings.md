@@ -1,6 +1,6 @@
-# AnnBachao — Stakeholder Financial Benefits & Value Proposition
+# Crumbly — Stakeholder Financial Benefits & Value Proposition
 
-**Product:** AnnBachao — Surplus Food Rescue Network
+**Product:** Crumbly — Surplus Food Rescue Network
 
 **Purpose:** Connect donors, delivery riders, hotels, cloud kitchens, food shops, Gruh Udyog businesses, PGs, hostels, and NGOs to reduce food waste, create earning opportunities, and provide quality food to communities in need.
 
@@ -22,7 +22,7 @@
 
 **Image Description:** An Indian delivery rider wearing a helmet and carrying an insulated food delivery bag, with food packages ready for collection from a restaurant or NGO.
 
-**Card Description:** Earn income while making a difference. AnnBachao connects riders with food collection and delivery requests, offering payments for completed deliveries through an order-based model similar to food delivery platforms.
+**Card Description:** Earn income while making a difference. Crumbly connects riders with food collection and delivery requests, offering payments for completed deliveries through an order-based model similar to food delivery platforms.
 
 **Financial & Social Benefits:**
 - Earn payments for successful deliveries.
@@ -43,13 +43,13 @@
 - Increase business visibility through platform listings and ratings.
 - Build customer trust and strengthen brand reputation.
 - Reach new customers and institutional partners.
-- Receive marketing support through AnnBachao's business network.
+- Receive marketing support through Crumbly's business network.
 
 ## 4. Cloud Kitchens — More Orders & Wider Reach
 
 **Image Description:** A cloud kitchen team packing freshly prepared meals into takeaway containers, with organised bulk orders ready for dispatch.
 
-**Card Description:** Expand your cloud kitchen's reach through AnnBachao. Connect with NGOs and community organisations seeking food for events, meal distribution programs, and food drives.
+**Card Description:** Expand your cloud kitchen's reach through Crumbly. Connect with NGOs and community organisations seeking food for events, meal distribution programs, and food drives.
 
 **Financial & Business Benefits:**
 - Receive bulk and recurring food orders.
@@ -63,7 +63,7 @@
 
 **Image Description:** An Indian local food shop displaying snacks, sweets, and packaged food alongside a home-based entrepreneur preparing and packing homemade products for customers.
 
-**Card Description:** Bring local food businesses closer to customers. AnnBachao enables food shops and Gruh Udyog entrepreneurs to showcase eligible products, receive orders, and collaborate with NGOs for food drives and community events.
+**Card Description:** Bring local food businesses closer to customers. Crumbly enables food shops and Gruh Udyog entrepreneurs to showcase eligible products, receive orders, and collaborate with NGOs for food drives and community events.
 
 **Financial & Business Benefits:**
 - Generate sales through individual and bulk orders.
@@ -77,7 +77,7 @@
 
 **Image Description:** NGO volunteers distributing hygienically packed meals to children and senior citizens, with organised food packages and a delivery rider assisting with distribution.
 
-**Card Description:** Make food distribution more accessible and efficient. AnnBachao connects NGOs with food donors, hotels, cloud kitchens, shops, and local accommodation providers to source meals and coordinate deliveries for people in need.
+**Card Description:** Make food distribution more accessible and efficient. Crumbly connects NGOs with food donors, hotels, cloud kitchens, shops, and local accommodation providers to source meals and coordinate deliveries for people in need.
 
 **Financial & Operational Benefits:**
 - Access donated surplus food and affordable paid orders.
@@ -103,9 +103,9 @@
 
 ## 8. Unified Value Proposition — One Network. Less Food Waste. Greater Impact.
 
-**Image Description:** A connected community food-rescue network showing donors, hotels, cloud kitchens, food shops, Gruh Udyog businesses, PGs, hostels, NGOs, and delivery riders linked through a central AnnBachao digital platform.
+**Image Description:** A connected community food-rescue network showing donors, hotels, cloud kitchens, food shops, Gruh Udyog businesses, PGs, hostels, NGOs, and delivery riders linked through a central Crumbly digital platform.
 
-**Card Description:** AnnBachao brings together food donors, businesses, accommodation providers, NGOs, and delivery partners to rescue surplus food, create earning opportunities, reduce unnecessary costs, and deliver quality meals to communities in need.
+**Card Description:** Crumbly brings together food donors, businesses, accommodation providers, NGOs, and delivery partners to rescue surplus food, create earning opportunities, reduce unnecessary costs, and deliver quality meals to communities in need.
 
 **Stakeholder Benefits:**
 - **Donors:** Rewards, recognition, and community impact.

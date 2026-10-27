@@ -1,31 +1,31 @@
-# AnnBachao — complete Kubernetes manifest set
+# Crumbly — complete Kubernetes manifest set
 # ----------------------------------------------------------------------------
 # Apply:      kubectl apply -f k8s/all.yaml
 # Delete:     kubectl delete -f k8s/all.yaml
 #
 # Images: compose builds them as kavy_project-<svc>. For k8s, tag+push (or load):
-#   docker build -t annbachao/auth-service:latest      services/auth-service
-#   docker build -t annbachao/listing-service:latest   services/listing-service
-#   docker build -t annbachao/claim-service:latest     services/claim-service
-#   docker build -t annbachao/notify-service:latest    services/notify-service
-#   docker build -t annbachao/api-gateway:latest       services/api-gateway
+#   docker build -t crumbly/auth-service:latest      services/auth-service
+#   docker build -t crumbly/listing-service:latest   services/listing-service
+#   docker build -t crumbly/claim-service:latest     services/claim-service
+#   docker build -t crumbly/notify-service:latest    services/notify-service
+#   docker build -t crumbly/api-gateway:latest       services/api-gateway
 #   docker build --build-arg VITE_API_URL= \
-#     -t annbachao/frontend:latest frontend
-#   # single-node cluster:  minikube image load annbachao/...
-#   # shared cluster:       docker push <registry>/annbachao/...
+#     -t crumbly/frontend:latest frontend
+#   # single-node cluster:  minikube image load crumbly/...
+#   # shared cluster:       docker push <registry>/crumbly/...
 #
 # Access (external): enable the ingress controller, then map the host, e.g.
 #   minikube addons enable ingress && minikube tunnel
-#   echo "127.0.0.1 annbachao.local" >> /etc/hosts   # or use the LoadBalancer IPs
-#   open http://annbachao.local
+#   echo "127.0.0.1 crumbly.local" >> /etc/hosts   # or use the LoadBalancer IPs
+#   open http://crumbly.local
 # Build the frontend with an empty VITE_API_URL so it calls /api/* on the same
 # host and the Ingress can route /api/* to the gateway.
 # ----------------------------------------------------------------------------
 apiVersion: v1
 kind: Secret
 metadata:
-  name: annbachao-secrets
-  labels: {app: annbachao, component: config}
+  name: crumbly-secrets
+  labels: {app: crumbly, component: config}
 type: Opaque
 stringData:
   JWT_SECRET: change_this_long_random_secret   # override per environment
@@ -34,8 +34,8 @@ stringData:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: annbachao-config
-  labels: {app: annbachao, component: config}
+  name: crumbly-config
+  labels: {app: crumbly, component: config}
 data:
   AUTH_URL: http://auth-service:5001
   LISTING_URL: http://listing-service:5002
@@ -127,18 +127,18 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: annbachao/auth-service:latest
+          image: crumbly/auth-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - {name: http, containerPort: 5001}
           env:
             - {name: PORT, value: "5001"}
             - name: MONGO_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: MONGO_AUTH_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: MONGO_AUTH_URL}}
             - name: JWT_SECRET
-              valueFrom: {secretKeyRef: {name: annbachao-secrets, key: JWT_SECRET}}
+              valueFrom: {secretKeyRef: {name: crumbly-secrets, key: JWT_SECRET}}
             - name: INTERNAL_KEY
-              valueFrom: {secretKeyRef: {name: annbachao-secrets, key: INTERNAL_KEY}}
+              valueFrom: {secretKeyRef: {name: crumbly-secrets, key: INTERNAL_KEY}}
           readinessProbe:
             httpGet: {path: /health, port: 5001}
             initialDelaySeconds: 10
@@ -177,16 +177,16 @@ spec:
     spec:
       containers:
         - name: listing-service
-          image: annbachao/listing-service:latest
+          image: crumbly/listing-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - {name: http, containerPort: 5002}
           env:
             - {name: PORT, value: "5002"}
             - name: MONGO_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: MONGO_MAIN_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: MONGO_MAIN_URL}}
             - name: NOTIFY_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: NOTIFY_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: NOTIFY_URL}}
           readinessProbe:
             httpGet: {path: /health, port: 5002}
             initialDelaySeconds: 10
@@ -225,16 +225,16 @@ spec:
     spec:
       containers:
         - name: claim-service
-          image: annbachao/claim-service:latest
+          image: crumbly/claim-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - {name: http, containerPort: 5003}
           env:
             - {name: PORT, value: "5003"}
             - name: MONGO_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: MONGO_MAIN_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: MONGO_MAIN_URL}}
             - name: NOTIFY_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: NOTIFY_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: NOTIFY_URL}}
           readinessProbe:
             httpGet: {path: /health, port: 5003}
             initialDelaySeconds: 10
@@ -273,20 +273,20 @@ spec:
     spec:
       containers:
         - name: notify-service
-          image: annbachao/notify-service:latest
+          image: crumbly/notify-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - {name: http, containerPort: 5004}
           env:
             - {name: PORT, value: "5004"}
             - name: MONGO_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: MONGO_MAIN_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: MONGO_MAIN_URL}}
             - name: GATEWAY_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: GATEWAY_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: GATEWAY_URL}}
             - name: AUTH_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: AUTH_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: AUTH_URL}}
             - name: INTERNAL_KEY
-              valueFrom: {secretKeyRef: {name: annbachao-secrets, key: INTERNAL_KEY}}
+              valueFrom: {secretKeyRef: {name: crumbly-secrets, key: INTERNAL_KEY}}
           readinessProbe:
             httpGet: {path: /health, port: 5004}
             initialDelaySeconds: 10
@@ -325,24 +325,24 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: annbachao/api-gateway:latest
+          image: crumbly/api-gateway:latest
           imagePullPolicy: IfNotPresent
           ports:
             - {name: http, containerPort: 8080}
           env:
             - {name: PORT, value: "8080"}
             - name: AUTH_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: AUTH_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: AUTH_URL}}
             - name: LISTING_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: LISTING_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: LISTING_URL}}
             - name: CLAIM_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: CLAIM_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: CLAIM_URL}}
             - name: NOTIFY_URL
-              valueFrom: {configMapKeyRef: {name: annbachao-config, key: NOTIFY_URL}}
+              valueFrom: {configMapKeyRef: {name: crumbly-config, key: NOTIFY_URL}}
             - name: JWT_SECRET
-              valueFrom: {secretKeyRef: {name: annbachao-secrets, key: JWT_SECRET}}
+              valueFrom: {secretKeyRef: {name: crumbly-secrets, key: JWT_SECRET}}
             - name: INTERNAL_KEY
-              valueFrom: {secretKeyRef: {name: annbachao-secrets, key: INTERNAL_KEY}}
+              valueFrom: {secretKeyRef: {name: crumbly-secrets, key: INTERNAL_KEY}}
           readinessProbe:
             httpGet: {path: /health, port: 8080}
             initialDelaySeconds: 10
@@ -381,7 +381,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: annbachao/frontend:latest
+          image: crumbly/frontend:latest
           imagePullPolicy: IfNotPresent
           ports:
             - {name: http, containerPort: 80}
@@ -415,11 +415,11 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: annbachao-ingress
-  labels: {app: annbachao}
+  name: crumbly-ingress
+  labels: {app: crumbly}
 spec:
   rules:
-    - host: annbachao.local
+    - host: crumbly.local
       http:
         paths:
           - path: /api

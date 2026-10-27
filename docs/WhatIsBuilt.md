@@ -1,6 +1,6 @@
-# What Is Built — AnnBachao
+# What Is Built — Crumbly
 
-**AnnBachao — Surplus Food Rescue Network.** A microservices web application that rescues surplus cooked food from donors and delivers it to NGOs via riders before it expires, with an OTP-verified handover.
+**Crumbly — Surplus Food Rescue Network.** A microservices web application that rescues surplus cooked food from donors and delivers it to NGOs via riders before it expires, with an OTP-verified handover.
 
 This document is a complete inventory of everything created in the project to date: services, frontend, infrastructure, tests, scripts, and documentation.
 
@@ -230,7 +230,7 @@ Three screens driven by auth state: **landing** (public) → **auth** (sign in /
 ### 5.5 Landing page (`src/landing/Landing.jsx`)
 Public marketing page following the 16-section structure:
 
-1. Announcement bar · 2. Navbar · 3. Hero ("Good food deserves a second chance.") · 4. Trust indicators · 5. Problem/Solution · 6. Features · 7. How it works (4 steps) · 8. Product showcase · 9. Use cases · 10. Why choose us · 11. Built-on (tech) · 12. Always-free · 13. FAQ · 14. Final CTA · 15. Footer.
+1. Announcement bar · 2. Navbar · 3. Hero ("Every crumb counts.") · 4. Trust indicators · 5. Problem/Solution · 6. Features · 7. How it works (4 steps) · 8. Product showcase · 9. Use cases · 10. Why choose us · 11. Built-on (tech) · 12. Always-free · 13. FAQ · 14. Final CTA · 15. Footer.
 Includes an interactive mobile menu, dismissible banner, FAQ accordion, and a CSS-mock product window. CTAs deep-link into auth with a preselected role.
 
 ### 5.6 Auth screen (`src/auth.jsx`)
@@ -279,7 +279,7 @@ Also included: `FoodCard`, `PostForm`, `OtpModal` (auto-advance OTP inputs), `Cl
 - **Frontend**: multi-stage — `node:20-alpine` build (`npm install` → `vite build` with `VITE_API_URL` build arg) → `nginx:alpine` serving `dist` + SPA `nginx.conf`.
 
 ### 7.3 Kubernetes (`k8s/all.yaml`) — complete, deployed & verified
-Deployments + Services for `mongo`, `auth-service`, `listing-service` (2 replicas + liveness probe), and `gateway` (LoadBalancer). Uses placeholder images `annbachao/*:latest`. Not used for the live demo.
+Deployments + Services for `mongo`, `auth-service`, `listing-service` (2 replicas + liveness probe), and `gateway` (LoadBalancer). Uses placeholder images `crumbly/*:latest`. Not used for the live demo.
 
 ### 7.4 Frontend serving
 `nginx.conf` does SPA fallback (`try_files $uri /index.html`). `vite.config.js` sets dev/preview port 5173.
@@ -389,4 +389,4 @@ Additional root files:
 
 ---
 
-*AnnBachao turns surplus food into a verified, accountable rescue — post, claim, OTP pickup, deliver.*
+*Crumbly turns surplus food into a verified, accountable rescue — post, claim, OTP pickup, deliver.*

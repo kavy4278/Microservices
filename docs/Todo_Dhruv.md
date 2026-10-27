@@ -1,7 +1,7 @@
 # Todo-Dhruv: Real-Time Delivery, Status Updates & Photo Visibility
 
 > **Status:** Ready for implementation  
-> **Owner:** AnnBachao — Surplus Food Rescue Network  
+> **Owner:** Crumbly — Surplus Food Rescue Network  
 > **Priority:** High  
 > **Affected services:** auth-service, listing-service, claim-service, notify-service, api-gateway, React frontend  
 

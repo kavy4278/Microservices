@@ -1,11 +1,11 @@
-# AnnBachao — Kubernetes: build, deploy, expose, verify (kind)
+# Crumbly — Kubernetes: build, deploy, expose, verify (kind)
 # Usage:
 #   .\scripts\k8s-deploy.ps1            # create cluster if needed, build, load, deploy, wait, verify
 #   .\scripts\k8s-deploy.ps1 -Expose    # + port-forwards (UI :5173, API :8085) + smoke test
 #   .\scripts\k8s-deploy.ps1 -TearDown  # delete the cluster
 #   .\scripts\k8s-deploy.ps1 -VerifyOnly  # re-run only the verification block
 param(
-  [string]$Cluster = "annbachao",
+  [string]$Cluster = "crumbly",
   [switch]$Expose,
   [switch]$TearDown,
   [switch]$VerifyOnly
@@ -112,18 +112,18 @@ if (-not $VerifyOnly) {
 
   # 2. build images (gateway exposed on host :8085 via port-forward; frontend baked to match)
   Write-Host "`nbuilding images..." -ForegroundColor Cyan
-  Invoke-Checked "build auth-service"    docker @('build', '-q', '-t', 'annbachao/auth-service:latest', 'services/auth-service')
-  Invoke-Checked "build listing-service" docker @('build', '-q', '-t', 'annbachao/listing-service:latest', 'services/listing-service')
-  Invoke-Checked "build claim-service"   docker @('build', '-q', '-t', 'annbachao/claim-service:latest', 'services/claim-service')
-  Invoke-Checked "build notify-service"  docker @('build', '-q', '-t', 'annbachao/notify-service:latest', 'services/notify-service')
-  Invoke-Checked "build api-gateway"     docker @('build', '-q', '-t', 'annbachao/api-gateway:latest', 'services/api-gateway')
-  Invoke-Checked "build frontend"        docker @('build', '-q', '--build-arg', 'VITE_API_URL=http://localhost:8085', '-t', 'annbachao/frontend:latest', 'frontend')
+  Invoke-Checked "build auth-service"    docker @('build', '-q', '-t', 'crumbly/auth-service:latest', 'services/auth-service')
+  Invoke-Checked "build listing-service" docker @('build', '-q', '-t', 'crumbly/listing-service:latest', 'services/listing-service')
+  Invoke-Checked "build claim-service"   docker @('build', '-q', '-t', 'crumbly/claim-service:latest', 'services/claim-service')
+  Invoke-Checked "build notify-service"  docker @('build', '-q', '-t', 'crumbly/notify-service:latest', 'services/notify-service')
+  Invoke-Checked "build api-gateway"     docker @('build', '-q', '-t', 'crumbly/api-gateway:latest', 'services/api-gateway')
+  Invoke-Checked "build frontend"        docker @('build', '-q', '--build-arg', 'VITE_API_URL=http://localhost:8085', '-t', 'crumbly/frontend:latest', 'frontend')
 
   # 3. load into the node (kind nodes use containerd; images are NOT shared with Docker automatically).
   #    kind prints "not yet present ... loading..." on stderr — that is normal progress, not an error.
   Write-Host "`nloading images into node..." -ForegroundColor Cyan
   foreach ($img in $Services) {
-    Invoke-Checked "load $img" kind @('load', 'docker-image', "annbachao/${img}:latest", '--name', $Cluster)
+    Invoke-Checked "load $img" kind @('load', 'docker-image', "crumbly/${img}:latest", '--name', $Cluster)
   }
 
   # 4. deploy + restart (mongo uses Recreate strategy: an RWO PVC cannot be shared).
@@ -166,7 +166,7 @@ $fail = @()
 $nodeImgs = docker exec $Node crictl images 2>$null
 $present = 0
 foreach ($img in $Services) {
-  if ($nodeImgs -match "annbachao/$img") { $present++ } else { $fail += "image missing on node: $img" }
+  if ($nodeImgs -match "crumbly/$img") { $present++ } else { $fail += "image missing on node: $img" }
 }
 if ($present -eq $Services.Count) {
   Write-Host ("images on node:      {0}/{1} present" -f $present, $Services.Count) -ForegroundColor Green
@@ -196,8 +196,8 @@ if ($readyAll) {
 
 # 5c. every workload uses the image we just built?
 $k8sImages = kubectl get pods -o custom-columns="NAME:.metadata.name,IMAGE:.spec.containers[*].image" --no-headers 2>$null
-$badImg = @($k8sImages | Where-Object { $_ -match 'annbachao/' -and $_ -notmatch 'annbachao/.*:latest' })
-if ($badImg.Count -eq 0) { Write-Host "pod images:          all pinned to annbachao/*:latest" -ForegroundColor Green }
+$badImg = @($k8sImages | Where-Object { $_ -match 'crumbly/' -and $_ -notmatch 'crumbly/.*:latest' })
+if ($badImg.Count -eq 0) { Write-Host "pod images:          all pinned to crumbly/*:latest" -ForegroundColor Green }
 else { $fail += "pods using unexpected images"; $badImg | ForEach-Object { Write-Host "   $_" -ForegroundColor Red } }
 
 # 5d. storage

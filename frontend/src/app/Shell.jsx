@@ -12,7 +12,7 @@ export default function Shell({ user, nav, active, onNav, onLogout, onHome, titl
       <aside className={`side${open ? ' open' : ''}`}>
         <button className="brand" style={{ background: 'none', border: 0, padding: 0 }} onClick={onHome}>
           <span className="brand-mark"><Icon name="leaf" size={20} /></span>
-          AnnBachao
+          Crumbly
         </button>
         <nav className="side-nav">
           {nav.map((n) => (

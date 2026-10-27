@@ -25,7 +25,7 @@ export default function Auth({ initialMode = 'login', initialRole = 'donor', onA
         ? await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email: f.email, password: f.password }) })
         : await api('/api/auth/register', { method: 'POST', body: JSON.stringify({ name: f.name, email: f.email, password: f.password, role: f.role, org: f.org, phone: f.phone }) });
       store.set(data.user, data.token);
-      toast(mode === 'login' ? 'Welcome back.' : 'Account created. Welcome to AnnBachao.', { title: 'Signed in' });
+      toast(mode === 'login' ? 'Welcome back.' : 'Account created. Welcome to Crumbly.', { title: 'Signed in' });
       onAuthed(data.user);
     } catch (e2) { setErr(e2.message); }
     finally { setBusy(false); }
@@ -38,10 +38,10 @@ export default function Auth({ initialMode = 'login', initialRole = 'donor', onA
       <aside className="auth-aside">
         <button className="brand" style={{ background: 'none', border: 0, padding: 0 }} onClick={onBack}>
           <span className="brand-mark" style={{ background: 'rgba(255,255,255,.16)' }}><Icon name="leaf" size={20} /></span>
-          AnnBachao
+          Crumbly
         </button>
         <div>
-          <h2>Good food deserves a second chance.</h2>
+          <h2>No crumb left behind.</h2>
           <p style={{ color: '#cfe3d7', maxWidth: 400 }}>
             Sign in to post surplus, claim food for your NGO, or run pickups as a rider.
           </p>
@@ -55,7 +55,7 @@ export default function Auth({ initialMode = 'login', initialRole = 'donor', onA
             ))}
           </div>
         </div>
-        <p className="small" style={{ color: '#9dc4ae' }}>A surplus food rescue network.</p>
+        <p className="small" style={{ color: '#9dc4ae' }}>Saving every crumb.</p>
       </aside>
 
       <main className="auth-main">
@@ -66,7 +66,7 @@ export default function Auth({ initialMode = 'login', initialRole = 'donor', onA
             <button className={mode === 'register' ? 'on' : ''} onClick={() => { setMode('register'); setErr(''); }}>Create account</button>
           </div>
           <h2 style={{ fontSize: '1.6rem' }}>{mode === 'login' ? 'Welcome back' : 'Join the rescue network'}</h2>
-          <p className="muted small mt-1 mb-3">{mode === 'login' ? 'Sign in to your AnnBachao workspace.' : 'Pick your role and start rescuing food in minutes.'}</p>
+          <p className="muted small mt-1 mb-3">{mode === 'login' ? 'Sign in to your Crumbly workspace.' : 'Pick your role and start rescuing food in minutes.'}</p>
 
           <form onSubmit={submit}>
             {mode === 'register' && (

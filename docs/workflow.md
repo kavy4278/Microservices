@@ -1,4 +1,4 @@
-# Workflow — 2-Day Vibe Loop (AnnBachao)
+# Workflow — 2-Day Vibe Loop (Crumbly)
 
 IDEA → RESEARCH → USER → PRD → STACK → ARCH → DESIGN → RULES → TASKS → SETUP → DEV → TEST → SEC REVIEW → CODE REVIEW → PREVIEW (compose) → QA → PROD (compose) → MONITOR (logs) → ITERATE
 
@@ -14,7 +14,7 @@ IDEA → RESEARCH → USER → PRD → STACK → ARCH → DESIGN → RULES → T
 9. NEXT task
 
 ## Prompt template to use
-CONTEXT (AnnBachao + docs) / TASK (TASK-00x) / FILES (paths) / CONSTRAINTS (gateway-only, validate, no unrelated edits) / ACCEPTANCE / TESTING (curl + UI). Report files changed, tests, issues.
+CONTEXT (Crumbly + docs) / TASK (TASK-00x) / FILES (paths) / CONSTRAINTS (gateway-only, validate, no unrelated edits) / ACCEPTANCE / TESTING (curl + UI). Report files changed, tests, issues.
 
 ## Never do
 IDEA→AI→DEPLOY. Never build whole app in one prompt. Never trust client role. Never commit .env.

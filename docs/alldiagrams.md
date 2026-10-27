@@ -1,9 +1,9 @@
-# All Diagrams — AnnBachao
+# All Diagrams — Crumbly
 
 ## 1. C4 Level 1 (Context)
 ```mermaid
 graph TD
-  Donor-->FE[AnnBachao SPA]
+  Donor-->FE[Crumbly SPA]
   NGO-->FE
   Rider-->FE
   Admin-->FE

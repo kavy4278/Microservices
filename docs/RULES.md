@@ -1,4 +1,4 @@
-# Development Rules — AnnBachao
+# Development Rules — Crumbly
 
 ## General
 - JavaScript (CommonJS), Express 4. Reuse existing middleware, no duplicate logic.

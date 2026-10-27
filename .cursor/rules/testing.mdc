@@ -1,1 +1,1 @@
-# AnnBachao testing rules — after each slice run node tests/smoke.js + TEST_PLAN.md checkboxes, verify 401/403/409/400 paths, fix before next task.
+# Crumbly testing rules — after each slice run node tests/smoke.js + TEST_PLAN.md checkboxes, verify 401/403/409/400 paths, fix before next task.

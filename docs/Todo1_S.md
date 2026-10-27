@@ -1,7 +1,7 @@
 # Todo-1: Communication, City Filter & Delivery-Status Permissions
 
 > **Status:** Planned  
-> **Owner:** AnnBachao — Surplus Food Rescue Network  
+> **Owner:** Crumbly — Surplus Food Rescue Network  
 > **Priority:** High  
 > **Affected services:** auth-service, listing-service, claim-service, api-gateway, React frontend  
 

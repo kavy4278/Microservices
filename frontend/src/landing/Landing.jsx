@@ -5,7 +5,7 @@ import { Button } from '../components/ui.jsx';
 const Brand = () => (
   <a className="brand" href="#top">
     <span className="brand-mark"><Icon name="leaf" size={20} /></span>
-    AnnBachao
+    Crumbly
   </a>
 );
 
@@ -192,10 +192,10 @@ export default function Landing({ onSignIn, onGetStarted }) {
         <div className="hero-orb hero-orb-2" />
         <div className="container">
           <div>
-            <span className="eyebrow"><Icon name="recycle" size={15} /> Surplus food rescue network</span>
-            <h1>Good food deserves<br />a second chance.</h1>
+            <span className="eyebrow"><Icon name="recycle" size={15} /> Saving every crumb</span>
+            <h1>Every crumb<br />counts.</h1>
             <p className="lead">
-              AnnBachao connects restaurants, kitchens and events with nearby NGOs and volunteer riders —
+              Crumbly connects restaurants, kitchens and events with nearby NGOs and volunteer riders —
               so safe surplus food reaches people before it expires, never the bin.
             </p>
             <div className="hero-cta">
@@ -212,7 +212,7 @@ export default function Landing({ onSignIn, onGetStarted }) {
             <div className="hero-shot">
               <div className="hero-shot-bar">
                 <i style={{ background: '#F87171' }} /><i style={{ background: '#FBBF24' }} /><i style={{ background: '#34D399' }} />
-                <span className="small muted" style={{ marginLeft: 8 }}>app.annbachao — live listings</span>
+                <span className="small muted" style={{ marginLeft: 8 }}>app.crumbly — live listings</span>
               </div>
               <div className="hero-shot-body">
                 <MockListing />
@@ -285,7 +285,7 @@ export default function Landing({ onSignIn, onGetStarted }) {
           </div>
           <div className="ps-grid">
             <div className="ps-col bad">
-              <h3>Without AnnBachao</h3>
+              <h3>Without Crumbly</h3>
               <ul>
                 <li><Icon name="xCircle" size={18} /> Surplus food spoils overnight because nobody nearby knows it exists.</li>
                 <li><Icon name="xCircle" size={18} /> Phone calls and WhatsApp groups lose track of who took what.</li>
@@ -294,7 +294,7 @@ export default function Landing({ onSignIn, onGetStarted }) {
               </ul>
             </div>
             <div className="ps-col good">
-              <h3>With AnnBachao</h3>
+              <h3>With Crumbly</h3>
               <ul>
                 <li><Icon name="checkCircle" size={18} /> Donors post surplus in seconds with quantity, location and a safety window.</li>
                 <li><Icon name="checkCircle" size={18} /> Nearby NGOs see live listings and claim what they can distribute.</li>
@@ -312,7 +312,7 @@ export default function Landing({ onSignIn, onGetStarted }) {
           <div className="section-head">
             <span className="kicker">Real Rescues in Motion</span>
             <h2>From surplus in the kitchen to smiles on the table</h2>
-            <p className="muted mt-2">Every step of AnnBachao is powered by real people — donors, volunteer riders, and community leaders working in sync.</p>
+            <p className="muted mt-2">Every step of Crumbly is powered by real people — donors, volunteer riders, and community leaders working in sync.</p>
           </div>
           <div className="story-grid">
             <div className="story-card">
@@ -408,7 +408,7 @@ export default function Landing({ onSignIn, onGetStarted }) {
               <span className="kicker">The workspace</span>
               <h2>A dashboard for every role</h2>
               <p className="muted mt-2">
-                Sign in and AnnBachao adapts to you. Donors track what they’ve posted, NGOs browse and claim,
+                Sign in and Crumbly adapts to you. Donors track what they’ve posted, NGOs browse and claim,
                 riders run pickups, and admins watch the whole network — all from the same clean workspace.
               </p>
               <ul className="ps-col" style={{ border: 0, padding: 0, marginTop: 18, listStyle: 'none' }}>
@@ -490,7 +490,7 @@ export default function Landing({ onSignIn, onGetStarted }) {
       <section className="section section-forest">
         <div className="container">
           <div className="section-head">
-            <span className="kicker">Why AnnBachao</span>
+            <span className="kicker">Why Crumbly</span>
             <h2>Trust is the whole point</h2>
           </div>
           <div className="feature-grid">
@@ -518,7 +518,7 @@ export default function Landing({ onSignIn, onGetStarted }) {
           <div className="section-head">
             <span className="kicker">Under the hood</span>
             <h2>A clean, service-based foundation</h2>
-            <p className="muted mt-2">AnnBachao is built as independent microservices behind a single gateway — reliable, observable and ready to grow.</p>
+            <p className="muted mt-2">Crumbly is built as independent microservices behind a single gateway — reliable, observable and ready to grow.</p>
           </div>
           <div className="feature-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
             {[
@@ -546,7 +546,7 @@ export default function Landing({ onSignIn, onGetStarted }) {
             <span className="kicker">Always free</span>
             <h2>No fees, no barriers to rescuing food</h2>
             <p className="muted mt-2" style={{ maxWidth: 620, margin: '10px auto 0' }}>
-              AnnBachao is free for donors, NGOs and riders. The only thing we’re trying to move is food — never money.
+              Crumbly is free for donors, NGOs and riders. The only thing we’re trying to move is food — never money.
             </p>
             <div className="feature-grid mt-4" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
               {[
@@ -574,11 +574,11 @@ export default function Landing({ onSignIn, onGetStarted }) {
           </div>
           <div className="faq">
             {[
-              ['Who can use AnnBachao?', 'Donors (restaurants, kitchens, hotels, events), NGOs and riders can join. An admin oversees the network. Each role gets its own workspace and permissions.'],
+              ['Who can use Crumbly?', 'Donors (restaurants, kitchens, hotels, events), NGOs and riders can join. An admin oversees the network. Each role gets its own workspace and permissions.'],
               ['How do you keep handovers safe?', 'When a rider collects, the donor confirms a one-time code. A rescue is only marked delivered after that verified handover, so the record always matches what actually happened.'],
               ['What stops unsafe or stale food?', 'Listings must set a pickup window that extends beyond a safe minimum. When time runs short, listings are flagged and eventually expire rather than linger as available.'],
               ['Can a listing be claimed twice?', 'No. A listing can have only one active claim at a time. Once claimed, it’s reserved for that NGO until it’s collected, delivered, or released.'],
-              ['What does it cost?', 'Nothing. AnnBachao is free for donors, NGOs and riders.'],
+              ['What does it cost?', 'Nothing. Crumbly is free for donors, NGOs and riders.'],
               ['How do I start?', 'Create an account, pick your role, and post or claim your first listing. It takes less than a minute.'],
             ].map(([q, a], i) => (
               <div className="faq-item" key={q}>
@@ -617,7 +617,7 @@ export default function Landing({ onSignIn, onGetStarted }) {
             <div>
               <Brand />
               <p className="small mt-2" style={{ maxWidth: 300, color: '#b9d4c5' }}>
-                A surplus food rescue network connecting donors, NGOs and volunteer riders — so good food reaches people, not landfill.
+                Saving every crumb — connecting donors, NGOs and volunteer riders — so good food reaches people, not landfill.
               </p>
             </div>
             <div>
@@ -636,14 +636,14 @@ export default function Landing({ onSignIn, onGetStarted }) {
             </div>
             <div>
               <h4>Contact</h4>
-              <a href="mailto:hello@annbachao.org"><Icon name="mail" size={14} /> hello@annbachao.org</a>
+              <a href="mailto:hello@crumbly.org"><Icon name="mail" size={14} /> hello@crumbly.org</a>
               <a href="#top"><Icon name="phone" size={14} /> +91 90000 00000</a>
               <a href="#top"><Icon name="globe" size={14} /> Mumbai, India</a>
             </div>
           </div>
           <div className="footer-bottom">
-            <span>© {new Date().getFullYear()} AnnBachao. Built to reduce food waste.</span>
-            <span>Good food deserves a second chance.</span>
+            <span>© {new Date().getFullYear()} Crumbly. Built to reduce food waste.</span>
+            <span>Every crumb counts.</span>
           </div>
         </div>
       </footer>

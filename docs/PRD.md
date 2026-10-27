@@ -1,7 +1,7 @@
-# Product Requirements Document — AnnBachao
+# Product Requirements Document — Crumbly
 
 ## 1. Product
-**AnnBachao — Surplus Food Rescue Network.** Microservices web app to rescue surplus cooked food from donors and deliver to NGOs via riders before expiry.
+**Crumbly — Surplus Food Rescue Network.** Microservices web app to rescue surplus cooked food from donors and deliver to NGOs via riders before expiry.
 
 ## 2. Problem
 Restaurants, messes, weddings waste ~70,000 tonnes food/day in India. NGOs cannot discover surplus in time. No tracking, no expiry guard, no accountability for pickup.

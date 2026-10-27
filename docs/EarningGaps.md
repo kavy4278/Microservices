@@ -1,22 +1,22 @@
-# AnnBachao: Gaps in the Earning Idea
+# Crumbly: Gaps in the Earning Idea
 
 Analysis of the stakeholder financial benefits document, with fixes and worked examples.
 
 **Memory trick:** ask three questions for every benefit: **Who pays? Who gets? What is left for us?**
 
-The stakeholder document is strong on **who gets** (riders, shops, NGOs, donors). It is weak on **who pays** and **what is left for AnnBachao**. The gaps below are listed from biggest to smallest.
+The stakeholder document is strong on **who gets** (riders, shops, NGOs, donors). It is weak on **who pays** and **what is left for Crumbly**. The gaps below are listed from biggest to smallest.
 
 ## Gap 1: The doc never says how the platform earns
 
-Every benefit in the document is money going **out** or **to users**: stars, rider pay, shop sales. Nowhere does it say what AnnBachao keeps.
+Every benefit in the document is money going **out** or **to users**: stars, rider pay, shop sales. Nowhere does it say what Crumbly keeps.
 
 **Fix:** take a cut on paid orders.
 
 **Worked example (made-up numbers):**
 
 1. An NGO orders 100 meals from a cloud kitchen at ₹60 each, so ₹6,000.
-2. AnnBachao keeps a **10% commission**, which is **₹600**.
-3. The delivery fee is ₹150. The rider gets ₹120 and AnnBachao keeps **₹30**.
+2. Crumbly keeps a **10% commission**, which is **₹600**.
+3. The delivery fee is ₹150. The rider gets ₹120 and Crumbly keeps **₹30**.
 4. The platform earns **₹630** on one order.
 
 ## Gap 2: Stars are a cost, not income

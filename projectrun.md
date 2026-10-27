@@ -1,4 +1,4 @@
-# Running & Verifying AnnBachao
+# Running & Verifying Crumbly
 
 How to start the project, which shell to use for which command, every URL you need, and a step-by-step checklist for proving each function works.
 
@@ -58,7 +58,7 @@ Other switches:
 ```
 
 What the script does, in order:
-1. switches kubectl to context `kind-annbachao`
+1. switches kubectl to context `kind-crumbly`
 2. builds 6 images: auth-service, listing-service, claim-service, notify-service, api-gateway, frontend
 3. `kind load docker-image` for each (kind uses containerd, not Docker's image store)
 4. `kubectl apply -f k8s/all.yaml` (18 documents)
@@ -76,7 +76,7 @@ The script ends with a pass/fail summary instead of just stopping:
 === verification ===
 images on node:      6/6 present
 pods ready:          8/8 Running 1/1
-pod images:          all pinned to annbachao/*:latest
+pod images:          all pinned to crumbly/*:latest
 storage:             PVC mongo-data Bound
 port 5173 :          LISTENING
 port 8085 :          LISTENING
@@ -90,14 +90,14 @@ ALL CHECKS PASSED
 
 | Resource | Detail |
 |---|---|
-| Cluster | `kind-annbachao` (single node: `annbachao-control-plane`, K8s v1.37.0) |
+| Cluster | `kind-crumbly` (single node: `crumbly-control-plane`, K8s v1.37.0) |
 | Workloads | mongo, auth, listing (2 replicas), claim, notify, gateway, frontend — 8 pods |
 | Storage | PVC `mongo-data` (1Gi, RWO, StorageClass `standard`) |
 | Access | `kubectl port-forward` (no ingress controller installed in kind) |
 
 ### Useful cluster commands
 ```powershell
-kubectl config current-context     # kind-annbachao
+kubectl config current-context     # kind-crumbly
 kubectl get pods                   # 8/8 Running
 kubectl get pvc                   # Bound
 kubectl get ingress,svc
@@ -282,9 +282,9 @@ Manual probes:
 | `AuthorizationManager check failed` on `npm` | Running npm in PowerShell 5.1. Use Git Bash, or `npm.cmd`. |
 | Ports `5173` / `8085` already in use | Compose and the cluster are both up. Stop one: `docker compose down`, or close the port-forward windows. |
 | Port-forward windows closed, app unreachable | Restart them: `.\scripts\k8s-deploy.ps1 -Expose` |
-| kind cluster missing | Recreate: `.\scripts\k8s-deploy.ps1` (creates `kind-annbachao`). |
-| Kubernetes tab in Docker Desktop shows "no clusters" | Expected. That tab is Docker Desktop's **own** built-in Kubernetes (separate feature, currently off). kind clusters appear in the **Containers** tab as `annbachao-control-plane`, and are driven via `kubectl`. |
+| kind cluster missing | Recreate: `.\scripts\k8s-deploy.ps1` (creates `kind-crumbly`). |
+| Kubernetes tab in Docker Desktop shows "no clusters" | Expected. That tab is Docker Desktop's **own** built-in Kubernetes (separate feature, currently off). kind clusters appear in the **Containers** tab as `crumbly-control-plane`, and are driven via `kubectl`. |
 | Frontend loads but API calls fail | `VITE_API_URL` must be reachable **from your browser**. For port-forward use `http://localhost:8085`; rebuild the image with `--build-arg VITE_API_URL=...` if it differs. |
 | Pods CrashLoopBackOff | `kubectl logs <pod>`. Mongo historically needed longer probe timeouts (`mongosh` ping exceeds the 1s default) and a `Recreate` deploy strategy because its PVC is RWO — both are already set in `k8s/all.yaml`. |
 | `kind load` prints `not yet present ... loading...` | **Normal progress, not an error** — kind writes it to stderr, which PowerShell makes look alarming. The script now swallows it on success and only surfaces it in red when the command actually fails. |
-| `kind exec` → `unknown command "exec"` | kind v0.33 has no `exec` subcommand here. Use `docker exec annbachao-control-plane crictl images` to inspect the node. |
+| `kind exec` → `unknown command "exec"` | kind v0.33 has no `exec` subcommand here. Use `docker exec crumbly-control-plane crictl images` to inspect the node. |

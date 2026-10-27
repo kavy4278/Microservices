@@ -7,7 +7,7 @@ services:
 
   auth-service:
     build: ./services/auth-service
-    image: annbachao/auth-service:latest
+    image: crumbly/auth-service:latest
     ports: ["5001:5001"]
     environment:
       - PORT=5001
@@ -18,7 +18,7 @@ services:
 
   listing-service:
     build: ./services/listing-service
-    image: annbachao/listing-service:latest
+    image: crumbly/listing-service:latest
     ports: ["5002:5002"]
     environment:
       - PORT=5002
@@ -28,7 +28,7 @@ services:
 
   claim-service:
     build: ./services/claim-service
-    image: annbachao/claim-service:latest
+    image: crumbly/claim-service:latest
     ports: ["5003:5003"]
     environment:
       - PORT=5003
@@ -38,7 +38,7 @@ services:
 
   notify-service:
     build: ./services/notify-service
-    image: annbachao/notify-service:latest
+    image: crumbly/notify-service:latest
     ports: ["5004:5004"]
     environment:
       - PORT=5004
@@ -50,7 +50,7 @@ services:
 
   api-gateway:
     build: ./services/api-gateway
-    image: annbachao/api-gateway:latest
+    image: crumbly/api-gateway:latest
     ports: ["8085:8080"]
     environment:
       - PORT=8080
@@ -67,7 +67,7 @@ services:
       context: ./frontend
       args:
         - VITE_API_URL=${VITE_API_URL:-http://localhost:8085}
-    image: annbachao/frontend:latest
+    image: crumbly/frontend:latest
     ports: ["5173:80"]
     depends_on: [api-gateway]
 

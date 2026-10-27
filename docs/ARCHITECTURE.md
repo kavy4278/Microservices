@@ -1,4 +1,4 @@
-# Architecture — AnnBachao
+# Architecture — Crumbly
 
 ## 1. Stack (locked)
 - Frontend: React 18 + Vite, plain CSS (no Tailwind to save time), fetch API

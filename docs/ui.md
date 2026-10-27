@@ -1,6 +1,6 @@
-# UI Documentation — AnnBachao
+# UI Documentation — Crumbly
 
-Complete description of the AnnBachao user interface: visual language, design tokens, component library, every screen, states, motion, responsiveness, accessibility, and how the UI maps to the API.
+Complete description of the Crumbly user interface: visual language, design tokens, component library, every screen, states, motion, responsiveness, accessibility, and how the UI maps to the API.
 
 The UI is a single-page React app (`frontend/`) served by nginx. It has three top-level screens — **Landing** (public), **Auth** (sign in / register), and **App** (role dashboard) — switched by `frontend/src/App.jsx`.
 
@@ -122,7 +122,7 @@ Two distinct layouts:
 
 ```
 ┌───────────────┬──────────────────────────────────────────────┐
-│  🌿 AnnBachao │  Overview                    [Admin] [Refresh]│  ← topbar (sticky, white)
+│  🌿 Crumbly │  Overview                    [Admin] [Refresh]│  ← topbar (sticky, white)
 │               ├──────────────────────────────────────────────┤
 │ ▸ Overview    │  ┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐      │
 │   Post surplus│  │ stat  │ │ stat  │ │ stat  │ │ stat  │      │
@@ -141,8 +141,8 @@ Two distinct layouts:
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  eyebrow pill          │   ┌───────────────────────────────┐   │
-│  Good food deserves    │   │ ● ● ●  app.annbachao          │   │
-│  a second chance.      │   │  🥗  Fresh veg biryani        │   │
+│  Saving every crumb    │   │ ● ● ●  app.crumbly          │   │
+│  Every crumb counts.   │   │  🥗  Fresh veg biryani        │   │
 │  lead copy…            │   │      40 servings · Andheri    │   │
 │  [Rescue food] [Explore]│  │      4h left · [stepper]      │   │
 │  ✓OTP ✓Expiry ✓Roles    │   └───────────────────────────────┘   │
@@ -215,15 +215,15 @@ Composition used in listing grids: image with a `StatusBadge` corner overlay, ti
 `frontend/src/landing/Landing.jsx` — public marketing page, 16-section structure. Props wire the two entry CTAs to `onGetStarted(role)` and `onSignIn()`.
 
 1. **Announcement bar** (`.announce`, `--forest-900`) — sparkles icon + message about onboarding + OTP; dismissible via an ✕ (local `banner` state).
-2. **Navbar** (`.nav`, sticky, blurred cream) — brand (leaf mark + "AnnBachao"); links *How it works* `#how`, *Features* `#features`, *Who it's for* `#usecases`, *FAQ* `#faq`; actions **Sign in** (ghost) and **Rescue food** (primary → register as donor). On ≤720px links collapse into a hamburger that toggles `.mobile-menu`.
-3. **Hero** (`.hero`, radial sage/orange wash) — eyebrow pill "Surplus food rescue network"; `h1` **"Good food deserves a second chance."**; lead paragraph; CTAs **Rescue food** (utensils → arrow) and **Explore listings** (search); a trust row (OTP-verified handovers · Expiry-aware listings · Four roles, one flow). Right column is a browser-style **product mock** showing a live listing card (fresh veg biryani, 40 portions, Andheri West, 4h left, a 4-step stepper) plus two floating cards ("Claimed by Akshaya NGO · 2 min ago", "Rider en route · OTP ready at pickup").
+2. **Navbar** (`.nav`, sticky, blurred cream) — brand (leaf mark + "Crumbly"); links *How it works* `#how`, *Features* `#features`, *Who it's for* `#usecases`, *FAQ* `#faq`; actions **Sign in** (ghost) and **Rescue food** (primary → register as donor). On ≤720px links collapse into a hamburger that toggles `.mobile-menu`.
+3. **Hero** (`.hero`, radial sage/orange wash) — eyebrow pill "Saving every crumb"; `h1` **"Every crumb counts."**; lead paragraph; CTAs **Rescue food** (utensils → arrow) and **Explore listings** (search); a trust row (OTP-verified handovers · Expiry-aware listings · Four roles, one flow). Right column is a browser-style **product mock** showing a live listing card (fresh veg biryani, 40 portions, Andheri West, 4h left, a 4-step stepper) plus two floating cards ("Claimed by Akshaya NGO · 2 min ago", "Rider en route · OTP ready at pickup").
 4. **Trust indicators** — four cards: Verified pickup · Zero-guess expiry · Role-based access · One active claim.
-5. **Problem / Solution** (`.section-white`) — kicker "The gap we close"; two panels: *Without AnnBachao* (white, red ✕ bullets) vs *With AnnBachao* (forest, sage ✓ bullets).
+5. **Problem / Solution** (`.section-white`) — kicker "The gap we close"; two panels: *Without Crumbly* (white, red ✕ bullets) vs *With Crumbly* (forest, sage ✓ bullets).
 6. **Features** (`#features`) — six cards: Post surplus in seconds · Find food near you · Riders with a clear run · OTP-verified handover · Impact you can see · Expiry you can't miss.
 7. **How it works** (`#how`, sage) — the 4-step sequence with connectors: **Post → Claim → Collect → Deliver**.
 8. **Product showcase** — left copy ("A dashboard for every role" + bullets + "See it for your NGO"); right a dark device frame containing a mock dashboard (stat tiles + a bar chart with one orange bar).
 9. **Use cases** (`#usecases`) — Restaurants · Hotels & catering · Grocery & bakeries · NGOs & shelters, each with a tag + icon.
-10. **Why AnnBachao** (`.section-forest`, dark) — six translucent cards: Verified, not hopeful · Time is the ingredient · Simple for riders · Transparent impact · Right access every time · Fast to start.
+10. **Why Crumbly** (`.section-forest`, dark) — six translucent cards: Verified, not hopeful · Time is the ingredient · Simple for riders · Transparent impact · Right access every time · Fast to start.
 11. **Built on** (white) — the tech stack: React + Vite · Node + Express · MongoDB · API gateway · JWT + roles · Docker.
 12. **Always free** — a centered panel with three cards: For donors · For NGOs · For riders.
 13. **FAQ** (`#faq`) — six accordion items (single-open via `openFaq` state, `aria-expanded`, rotating chevron).
@@ -238,7 +238,7 @@ Anchors used by nav are `#how`, `#features`, `#usecases`, `#faq`, `#top`.
 
 `frontend/src/auth.jsx` — split layout (`.auth-page`).
 
-- **Left aside** (forest→forest-900 gradient, decorative circle): brand, headline "Good food deserves a second chance.", three benefit lines (OTP-verified handovers, Expiry-aware listings, Impact you can see), tagline. Hidden on ≤1024px.
+- **Left aside** (forest→forest-900 gradient, decorative circle): brand, headline "Every crumb counts.", three benefit lines (OTP-verified handovers, Expiry-aware listings, Impact you can see), tagline. Hidden on ≤1024px.
 - **Right main** (ivory): a "Back to home" ghost button, a segmented **Sign in / Create account** switch (`.seg`), a title + subtext, then the form:
   - *Register:* Full name, "I am a …" role select (Donor/NGO/Rider/Admin) + Organisation, Email, Password (≥6 chars).
   - *Login:* Email, Password.
@@ -385,7 +385,7 @@ The UI never calls services directly — everything goes through the gateway, an
 - **Errors explain and guide**, e.g. "Pickup window must end at least 2 hours from now."
 - **Empty states invite action**, e.g. "Your posted surplus food will appear here."
 - **Status labels are human:** Available, Claimed, Expiring soon, Picked up, Delivered, Expired, Cancelled.
-- **Brand line reused:** "Good food deserves a second chance."
+- **Brand line reused:** "Every crumb counts."
 
 ---
 
