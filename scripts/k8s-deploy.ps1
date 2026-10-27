@@ -211,6 +211,15 @@ kubectl get "pods,svc,pvc,ingress"
 
 if ($Expose) {
   Write-Host "`nsetting up port-forwards..." -ForegroundColor Cyan
+
+  # Kill any stale kubectl port-forward processes from previous runs so we start clean.
+  $staleFwds = @(Get-CimInstance Win32_Process -Filter "Name='kubectl.exe' AND CommandLine LIKE '%port-forward%'" -ErrorAction SilentlyContinue)
+  if ($staleFwds.Count -gt 0) {
+    Write-Host "   recycling $($staleFwds.Count) stale kubectl port-forward process(es)..." -ForegroundColor Yellow
+    $staleFwds | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+    Start-Sleep -Seconds 1
+  }
+
   $forwards = @(
     @{ Port = 5173; Svc = 'frontend';    Target = '80';   Probe = 'http://127.0.0.1:5173/'            },
     @{ Port = 8085; Svc = 'api-gateway'; Target = '8080'; Probe = 'http://127.0.0.1:8085/health'     }
