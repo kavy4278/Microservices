@@ -11,20 +11,30 @@ const Brand = () => (
 
 function MockListing() {
   return (
-    <div className="card" style={{ border: '1px solid var(--border)' }}>
-      <div className="food-img" style={{ borderRadius: 12, marginBottom: 12 }}>
-        <span aria-hidden="true">🥗</span>
-        <span className="corner badge badge-posted">Available</span>
+    <div className="card" style={{ border: '1px solid var(--border)', boxShadow: 'none' }}>
+      <div className="hero-listing-media">
+        <img
+          src="/images/hero_biryani_meal.jpg"
+          alt="Fresh hot vegetable biryani"
+          className="hero-listing-img"
+        />
+        <span className="corner badge badge-posted">
+          <span className="pulse-dot" /> Available now
+        </span>
+        <span className="hero-photo-tag">
+          <Icon name="store" size={13} style={{ marginRight: 5, verticalAlign: '-1px' }} />
+          Royal Spice Kitchen · Andheri West
+        </span>
       </div>
       <div className="between">
         <div>
-          <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700 }}>Fresh vegetable biryani</div>
+          <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: '1.05rem' }}>Fresh vegetable biryani</div>
           <div className="food-meta mt-1">
             <span><Icon name="package" size={14} /> 40 portions</span>
-            <span><Icon name="mapPin" size={14} /> Andheri West</span>
+            <span><Icon name="leaf" size={14} /> 100% Vegetarian</span>
           </div>
         </div>
-        <span className="expiry soon"><Icon name="clock" size={13} /> 4h left</span>
+        <span className="expiry soon"><Icon name="clock" size={13} /> 4h safe window</span>
       </div>
       <div className="stepper mt-3">
         <span className="step-dot done"><i><Icon name="check" size={12} stroke={3} /></i></span>
@@ -39,24 +49,83 @@ function MockListing() {
   );
 }
 
-function MockDashboard() {
+function MockRoleDashboard({ activeRole = 'donor' }) {
+  if (activeRole === 'ngo') {
+    return (
+      <div>
+        <div className="row" style={{ gap: 12 }}>
+          <div className="stat grow" style={{ padding: 14 }}>
+            <span className="lbl">Available near me</span>
+            <div className="val" style={{ fontSize: '1.5rem', color: 'var(--forest)' }}>8 listings</div>
+          </div>
+          <div className="stat grow" style={{ padding: 14 }}>
+            <span className="lbl">Meals distributed</span>
+            <div className="val" style={{ fontSize: '1.5rem', color: 'var(--orange)' }}>1,420</div>
+          </div>
+        </div>
+        <div className="card mt-2" style={{ padding: 14, background: '#faf9f5' }}>
+          <div className="between mb-2">
+            <strong className="small">Active claim · Akshaya NGO</strong>
+            <span className="badge badge-picked">Rider en route</span>
+          </div>
+          <div className="row" style={{ gap: 10, alignItems: 'center' }}>
+            <img src="/images/hero_biryani_meal.jpg" alt="Claimed food" style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover' }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, fontSize: '.88rem' }}>Vegetable biryani (40 portions)</div>
+              <div className="muted small">Pickup code: <strong style={{ color: 'var(--forest)', letterSpacing: '.15em' }}>8492</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (activeRole === 'rider') {
+    return (
+      <div>
+        <div className="row" style={{ gap: 12 }}>
+          <div className="stat grow" style={{ padding: 14 }}>
+            <span className="lbl">Pickups completed</span>
+            <div className="val" style={{ fontSize: '1.5rem', color: 'var(--forest)' }}>32</div>
+          </div>
+          <div className="stat grow" style={{ padding: 14 }}>
+            <span className="lbl">Hours volunteered</span>
+            <div className="val" style={{ fontSize: '1.5rem', color: 'var(--orange)' }}>16.5 h</div>
+          </div>
+        </div>
+        <div className="card mt-2" style={{ padding: 14, background: '#faf9f5' }}>
+          <div className="between mb-2">
+            <strong className="small">Pickup run #108</strong>
+            <span className="badge badge-sage">Step 3 of 4</span>
+          </div>
+          <p className="muted small mb-2"><Icon name="mapPin" size={13} /> Royal Spice Kitchen → St. Jude Shelter (2.4 km)</p>
+          <div className="row" style={{ gap: 8 }}>
+            <span className="badge badge-picked" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <Icon name="shieldCheck" size={13} /> OTP Confirmed
+            </span>
+            <span className="badge badge-outline">Ready to deliver</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  // Default: donor
   return (
     <div>
       <div className="row" style={{ gap: 12 }}>
         <div className="stat grow" style={{ padding: 14 }}>
           <span className="lbl">Active listings</span>
-          <div className="val" style={{ fontSize: 1.5 + 'rem' }}>12</div>
+          <div className="val" style={{ fontSize: '1.5rem', color: 'var(--forest)' }}>12</div>
         </div>
         <div className="stat grow" style={{ padding: 14 }}>
           <span className="lbl">Meals rescued</span>
-          <div className="val" style={{ fontSize: 1.5 + 'rem' }}>480</div>
+          <div className="val" style={{ fontSize: '1.5rem', color: 'var(--orange)' }}>480</div>
         </div>
       </div>
       <div className="card mt-2" style={{ padding: 14 }}>
         <div className="between mb-2"><strong className="small">Rescue activity</strong><span className="badge badge-sage">This week</span></div>
         <div className="row" style={{ gap: 8, alignItems: 'flex-end', height: 90 }}>
           {[38, 62, 45, 80, 55, 92, 70].map((h, i) => (
-            <div key={i} className="grow" style={{ background: i === 5 ? 'var(--orange)' : 'var(--forest)', height: `${h}%`, borderRadius: 6, opacity: i === 5 ? 1 : 0.85 }} />
+            <div key={i} className="grow bar-hover" style={{ background: i === 5 ? 'var(--orange)' : 'var(--forest)', height: `${h}%`, borderRadius: 6, opacity: i === 5 ? 1 : 0.85, transition: 'transform .2s' }} />
           ))}
         </div>
       </div>
@@ -68,6 +137,7 @@ export default function Landing({ onSignIn, onGetStarted }) {
   const [menu, setMenu] = useState(false);
   const [banner, setBanner] = useState(true);
   const [openFaq, setOpenFaq] = useState(0);
+  const [dashboardRole, setDashboardRole] = useState('donor');
 
   const navLinks = [
     ['How it works', '#how'],
@@ -118,6 +188,8 @@ export default function Landing({ onSignIn, onGetStarted }) {
       {/* 3. Hero */}
       <section className="hero">
         <div className="hero-bg" />
+        <div className="hero-orb hero-orb-1" />
+        <div className="hero-orb hero-orb-2" />
         <div className="container">
           <div>
             <span className="eyebrow"><Icon name="recycle" size={15} /> Surplus food rescue network</span>
@@ -157,6 +229,27 @@ export default function Landing({ onSignIn, onGetStarted }) {
                 <Icon name="bike" size={18} />
               </span>
               <div><b>Rider en route</b><div className="small muted">OTP ready at pickup</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="container">
+          <div className="live-ticker">
+            <div className="live-ticker-item">
+              <span className="pulse-dot" />
+              <span><strong>48,200+</strong> meals rescued</span>
+            </div>
+            <div className="live-ticker-item">
+              <Icon name="shieldCheck" size={16} style={{ color: 'var(--forest)' }} />
+              <span><strong>100%</strong> OTP verified</span>
+            </div>
+            <div className="live-ticker-item">
+              <Icon name="clock" size={16} style={{ color: 'var(--orange)' }} />
+              <span><strong>&lt; 35 min</strong> avg. turnaround</span>
+            </div>
+            <div className="live-ticker-item">
+              <Icon name="leaf" size={16} style={{ color: 'var(--forest)' }} />
+              <span><strong>18.5 tonnes</strong> CO₂ prevented</span>
             </div>
           </div>
         </div>
@@ -208,6 +301,49 @@ export default function Landing({ onSignIn, onGetStarted }) {
                 <li><Icon name="checkCircle" size={18} /> Riders confirm pickup and delivery with OTP, so every rescue is verifiable.</li>
                 <li><Icon name="checkCircle" size={18} /> Admins get a clear view of the whole network and its impact.</li>
               </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5b. Real Rescues in Motion (Story Gallery with Real Images) */}
+      <section className="section section-sage">
+        <div className="container">
+          <div className="section-head">
+            <span className="kicker">Real Rescues in Motion</span>
+            <h2>From surplus in the kitchen to smiles on the table</h2>
+            <p className="muted mt-2">Every step of AnnBachao is powered by real people — donors, volunteer riders, and community leaders working in sync.</p>
+          </div>
+          <div className="story-grid">
+            <div className="story-card">
+              <div className="story-img-wrap">
+                <img src="/images/restaurant_chef_packing.jpg" alt="Chef packaging surplus meals" className="story-img" />
+                <span className="story-badge"><Icon name="store" size={14} /> 1. Kitchens pack surplus</span>
+              </div>
+              <div className="story-body">
+                <h3>No good meal goes to waste</h3>
+                <p>Commercial kitchens and caterers box fresh surplus within 15 minutes of service close. Safety timestamps guarantee quality.</p>
+              </div>
+            </div>
+            <div className="story-card">
+              <div className="story-img-wrap">
+                <img src="/images/volunteer_rider_delivery.jpg" alt="Volunteer rider delivery in Mumbai" className="story-img" />
+                <span className="story-badge"><Icon name="bike" size={14} /> 2. Verified OTP pickup</span>
+              </div>
+              <div className="story-body">
+                <h3>Fast & verifiable transit</h3>
+                <p>Volunteer riders arrive on two-wheelers with thermal carriers. A one-time security code confirms the handover at the doorstep.</p>
+              </div>
+            </div>
+            <div className="story-card">
+              <div className="story-img-wrap">
+                <img src="/images/community_food_distribution.jpg" alt="Community meal distribution" className="story-img" />
+                <span className="story-badge"><Icon name="handHeart" size={14} /> 3. Nutritious dinner served</span>
+              </div>
+              <div className="story-body">
+                <h3>Dignified, warm meals</h3>
+                <p>NGO shelters and community centers distribute hot, wholesome meals to children and families before dinner hours.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -296,10 +432,30 @@ export default function Landing({ onSignIn, onGetStarted }) {
                 <i style={{ width: 11, height: 11, borderRadius: '50%', background: '#F87171', display: 'block' }} />
                 <i style={{ width: 11, height: 11, borderRadius: '50%', background: '#FBBF24', display: 'block' }} />
                 <i style={{ width: 11, height: 11, borderRadius: '50%', background: '#34D399', display: 'block' }} />
-                <span className="small muted" style={{ marginLeft: 8 }}>Donor dashboard</span>
+                <span className="small muted" style={{ marginLeft: 8, textTransform: 'capitalize' }}>{dashboardRole} dashboard</span>
               </div>
-              <div className="device-inner" style={{ padding: 16 }}>
-                <MockDashboard />
+              <div className="device-inner" style={{ padding: 18 }}>
+                <div className="role-tabs">
+                  <button
+                    className={`role-tab ${dashboardRole === 'donor' ? 'active' : ''}`}
+                    onClick={() => setDashboardRole('donor')}
+                  >
+                    <Icon name="utensils" size={15} /> Donor
+                  </button>
+                  <button
+                    className={`role-tab ${dashboardRole === 'ngo' ? 'active' : ''}`}
+                    onClick={() => setDashboardRole('ngo')}
+                  >
+                    <Icon name="handHeart" size={15} /> NGO
+                  </button>
+                  <button
+                    className={`role-tab ${dashboardRole === 'rider' ? 'active' : ''}`}
+                    onClick={() => setDashboardRole('rider')}
+                  >
+                    <Icon name="bike" size={15} /> Rider
+                  </button>
+                </div>
+                <MockRoleDashboard activeRole={dashboardRole} />
               </div>
             </div>
           </div>

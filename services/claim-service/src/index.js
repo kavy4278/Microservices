@@ -36,7 +36,7 @@ app.get('/health',(req,res)=>res.json({ok:true,service:'claim'}));
 app.post('/', async (req,res)=>{
   try{
     const r = role(req);
-    if(!['ngo','admin'].includes(r)) return res.status(403).json({ok:false,error:'ngo only'});
+    if (r !== 'ngo') return res.status(403).json({ok:false,error:'ngo only'});
     const { listingId } = req.body;
     if(!listingId) return res.status(400).json({ok:false,error:'listingId required'});
     const l = await Listing.findById(listingId);
@@ -81,6 +81,9 @@ app.get('/', async (req,res)=>{
 });
 
 app.patch('/:id/pickup', async (req,res)=>{
+  if(role(req)!=='rider' && role(req)!=='admin'){
+    return res.status(403).json({ok:false,error:'only riders can pick up'});
+  }
   const c=await Claim.findById(req.params.id);
   if(!c) return res.status(404).json({ok:false,error:'not found'});
   if(c.status!=='CLAIMED') return res.status(400).json({ok:false,error:'not in CLAIMED'});
@@ -97,7 +100,7 @@ app.patch('/:id/deliver', async (req,res)=>{
   if(!c) return res.status(404).json({ok:false,error:'not found'});
   if(c.status!=='PICKED_UP') return res.status(400).json({ok:false,error:'pick up first'});
   // permission gate: only the assigned rider can mark delivery (admin retains override)
-  if(role(req)!=='admin' && String(c.riderId)!==uid(req)){
+  if(role(req)!=='admin' && (role(req)!=='rider' || String(c.riderId)!==uid(req))){
     return res.status(403).json({ok:false,error:'only the assigned rider can mark delivery'});
   }
   c.status='DELIVERED'; c.timeline.push({at:new Date(),by:uid(req),msg:'delivered'});

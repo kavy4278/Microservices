@@ -87,9 +87,9 @@ If a donor never provides a phone number, every existing feature (post, claim, p
 ### Desired behaviour
 | # | Requirement |
 |---|-------------|
-| 3.1 | "Mark delivered" button is **visible to NGO and rider** (transparency: NGO can see their food was delivered). |
-| 3.2 | **Only the rider** (`c.riderId === currentUser.id`) can actually execute the `PATCH /api/claims/:id/deliver` transition. |
-| 3.3 | NGO clicking "Mark delivered" (without being the assigned rider) gets `403 Forbidden` with message "Only the assigned rider can mark delivery." |
+| 3.1 | "Mark delivered" button is **only visible to the assigned rider (and admin)**. NGOs never see this button; their card shows "On the way — delivery pending." while picked up. |
+| 3.2 | **Only the assigned rider** (`c.riderId === currentUser.id`) or admin can execute the `PATCH /api/claims/:id/deliver` transition. |
+| 3.3 | NGO attempting `PATCH /api/claims/:id/deliver` gets `403 Forbidden` with message "only the assigned rider can mark delivery". |
 | 3.4 | Admin retains override ability to mark delivered. |
 | 3.5 | ClaimCard shows a rider-assigned badge: "Picked up by <riderName>" when `riderId` is set. |
 
@@ -99,9 +99,9 @@ app.patch('/:id/deliver', async (req, res) => {
   const c = await Claim.findById(req.params.id);
   if (!c) return 404;
   if (c.status !== 'PICKED_UP') return 400 'pick up first';
-  // permission gate
-  if (req.userRole !== 'admin' && String(c.riderId) !== req.userId) {
-    return 403 { ok: false, error: 'only the assigned rider can mark delivery' };
+  // permission gate: only the assigned rider can mark delivery (admin retains override)
+  if (role(req) !== 'admin' && (role(req) !== 'rider' || String(c.riderId) !== uid(req))) {
+    return res.status(403).json({ ok: false, error: 'only the assigned rider can mark delivery' });
   }
   c.status = 'DELIVERED';
   ...
@@ -109,9 +109,9 @@ app.patch('/:id/deliver', async (req, res) => {
 ```
 
 ### Frontend changes (frontend/src/app/App.jsx, ClaimCard)
-- Visibility: `{ (role === 'rider' || role === 'ngo' || role === 'admin') && c.status === 'PICKED_UP' && <Button ... onClick={onDeliver}> }` — keep for all three roles so the button is visible.
-- The `onDeliver` handler calls the API; the server enforces the rider-only rule and returns `403` for NGOs who are not the rider.
-- Show toast: "Only the rider assigned to this pickup can confirm delivery." on `403`.
+- Visibility: "Mark delivered" button is shown **only** when `status === 'PICKED_UP'` and `currentRole === 'admin' || (currentRole === 'rider' && (!c.riderId || String(c.riderId) === String(currentUserId)))`.
+- NGOs see status message "On the way — delivery pending." instead of any action buttons.
+- Server enforces rider-only rule and returns `403` if an unauthorized request is made.
 - Add rider badge: `{c.riderId && <span>Picked up by {c.riderName}</span>}`.
 
 ---

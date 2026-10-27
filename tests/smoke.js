@@ -84,6 +84,11 @@ async function api(path, opts={}, token){
   const wo = await api(`/api/claims/${claim._id}/pickup`,{method:'PATCH',body:JSON.stringify({otp:'0000'})}, rTok);
   console.log('wrong-otp (want 400):', wo.status);
 
+  // NGO trying to pickup -> 403
+  const ngoPickup = await api(`/api/claims/${claim._id}/pickup`,{method:'PATCH',body:JSON.stringify({otp:claimOtp})}, nTok);
+  console.log('ngo pickup status (want 403):', ngoPickup.status);
+  if (ngoPickup.status !== 403) throw new Error('NGO calling pickup did not return 403');
+
   // AC5: Rider picks up with correct OTP
   r = await api(`/api/claims/${claim._id}/pickup`,{method:'PATCH',body:JSON.stringify({otp:claimOtp})}, rTok);
   console.log('rider pickup:', r.body.ok);
