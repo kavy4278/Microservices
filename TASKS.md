@@ -25,5 +25,15 @@
 
 ## Phase 5: Polish + Demo (TASK-008+)
 - [x] Leaderboard, DESIGN pass, empty/loading/error states
+
+## Phase 6: Todo-Dhruv — Real-time + photos (TASK-009)
+- [x] notify-service: user/role notifications, unread/read-all, gateway fan-out
+- [x] api-gateway: authenticated SSE stream `GET /api/notify/stream`
+- [x] claim/listing services: live status broadcasts, timelines, expiry sweep
+- [x] frontend: EventSource client, unread badge, live badges, Alerts feed
+- [x] photos on claim cards, OTP modal, browse/all listings (base64 `photoUrl`)
+- [x] E2E verified: real-time notifications/status, photos, expiry warnings, role isolation
+
+## Remaining demo tasks
 - [ ] Run `node scripts/seed.js`, full TEST_PLAN click-through, `v1-mvp` tag
 - [ ] Viva: architecture diagram, JWT flow, `docker compose logs gateway`

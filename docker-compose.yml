@@ -13,6 +13,7 @@ services:
       - PORT=5001
       - MONGO_URL=mongodb://mongo:27017/authdb
       - JWT_SECRET=${JWT_SECRET:-devsecret123}
+      - INTERNAL_KEY=${INTERNAL_KEY:-devsecret123}
     depends_on: [mongo]
 
   listing-service:
@@ -22,6 +23,7 @@ services:
     environment:
       - PORT=5002
       - MONGO_URL=mongodb://mongo:27017/maindb
+      - NOTIFY_URL=http://notify-service:5004
     depends_on: [mongo]
 
   claim-service:
@@ -31,6 +33,7 @@ services:
     environment:
       - PORT=5003
       - MONGO_URL=mongodb://mongo:27017/maindb
+      - NOTIFY_URL=http://notify-service:5004
     depends_on: [mongo]
 
   notify-service:
@@ -40,6 +43,9 @@ services:
     environment:
       - PORT=5004
       - MONGO_URL=mongodb://mongo:27017/maindb
+      - GATEWAY_URL=http://api-gateway:8080
+      - AUTH_URL=http://auth-service:5001
+      - INTERNAL_KEY=${INTERNAL_KEY:-devsecret123}
     depends_on: [mongo]
 
   api-gateway:
@@ -49,6 +55,7 @@ services:
     environment:
       - PORT=8080
       - JWT_SECRET=${JWT_SECRET:-devsecret123}
+      - INTERNAL_KEY=${INTERNAL_KEY:-devsecret123}
       - AUTH_URL=http://auth-service:5001
       - LISTING_URL=http://listing-service:5002
       - CLAIM_URL=http://claim-service:5003

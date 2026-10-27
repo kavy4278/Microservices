@@ -4,7 +4,7 @@ import { Button } from '../components/ui.jsx';
 
 const ROLE_LABEL = { admin: 'Administrator', donor: 'Donor', ngo: 'NGO', rider: 'Rider' };
 
-export default function Shell({ user, nav, active, onNav, onLogout, onHome, title, children, onRefresh, refreshing }) {
+export default function Shell({ user, nav, active, onNav, onLogout, onHome, title, children, onRefresh, refreshing, unread = 0 }) {
   const [open, setOpen] = useState(false);
   const go = (key) => { onNav(key); setOpen(false); };
   return (
@@ -19,6 +19,9 @@ export default function Shell({ user, nav, active, onNav, onLogout, onHome, titl
             <button key={n.key} className={`side-link${active === n.key ? ' active' : ''}`} onClick={() => go(n.key)}>
               <Icon name={n.icon} size={19} />
               {n.label}
+              {n.key === 'alerts' && unread > 0 && (
+                <span className="nav-badge" aria-label={`${unread} unread notifications`}>{unread > 99 ? '99+' : unread}</span>
+              )}
             </button>
           ))}
         </nav>

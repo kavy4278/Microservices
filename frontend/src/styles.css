@@ -333,6 +333,7 @@ button { font-family: inherit; cursor: pointer; }
 .side-link:hover { background: rgba(255,255,255,.08); color: #fff; }
 .side-link.active { background: var(--forest); color: #fff; font-weight: 600; }
 .side-link svg { flex: 0 0 auto; }
+.nav-badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--red); color: #fff; font-size: .7rem; font-weight: 700; display: inline-grid; place-items: center; line-height: 1; }
 .side-user { margin-top: 18px; background: rgba(255,255,255,.07); border-radius: var(--r-md); padding: 14px; }
 .side-user .name { color: #fff; font-weight: 600; font-family: var(--font-head); font-size: .92rem; }
 .side-user .role { font-size: .76rem; color: #9dc4ae; text-transform: capitalize; }
@@ -377,6 +378,14 @@ button { font-family: inherit; cursor: pointer; }
 .otp-box:focus { border-color: var(--forest); box-shadow: 0 0 0 4px rgba(23,107,69,.14); outline: none; }
 .otp-box.filled { border-color: var(--forest); background: var(--sage); }
 .otp-display { font-family: var(--font-head); font-weight: 800; font-size: 1.9rem; letter-spacing: .35em; background: var(--forest-900); color: #7ee2a8; padding: 12px 18px; border-radius: var(--r-md); display: inline-block; }
+.otp-photo { max-width: 280px; margin: 0 auto 16px; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border); }
+.otp-photo .food-img { aspect-ratio: 16/10; }
+.claim-thumb { width: 52px; height: 52px; border-radius: 10px; overflow: hidden; flex: 0 0 auto; border: 1px solid var(--border); }
+.claim-thumb .food-img { aspect-ratio: auto; width: 100%; height: 100%; font-size: 1.4rem; }
+.claim-timeline { border-left: 2px solid var(--border); margin-left: 6px; padding-left: 14px; display: flex; flex-direction: column; gap: 7px; }
+.claim-timeline-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.claim-timeline-row > .muted { margin-left: auto; }
+.claim-timeline-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--forest); flex: 0 0 auto; margin-left: -19px; }
 
 /* Stepper */
 .stepper { display: flex; align-items: center; gap: 6px; }

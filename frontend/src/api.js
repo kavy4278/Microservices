@@ -1,5 +1,12 @@
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8085';
+const RAW_BASE = import.meta.env.VITE_API_URL;
+// Build with VITE_API_URL= (empty) when the API is served same-origin behind the ingress.
+export const API_BASE = (RAW_BASE === undefined ? 'http://localhost:8085' : RAW_BASE).replace(/\/+$/, '');
+const BASE = API_BASE;
 const token = () => localStorage.getItem('token');
+export function eventStreamUrl(){
+  const tk = token();
+  return tk ? `${BASE}/api/notify/stream?token=${encodeURIComponent(tk)}` : null;
+}
 export async function api(path, opts={}){
   let res;
   try {

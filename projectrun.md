@@ -165,8 +165,11 @@ Routing is state-based (single-page, no router library) — dashboard routes are
 | `PATCH /api/claims/:id/pickup` | Pick up `{otp}` | rider |
 | `PATCH /api/claims/:id/deliver` | Mark delivered | rider |
 | `DELETE /api/claims/:id` | Cancel claim | JWT |
-| `GET /api/notify` | Notifications | JWT |
+| `GET /api/notify` | Notifications (user + role targeted) | JWT |
+| `GET /api/notify/unread-count` | Unread badge count | JWT |
+| `PATCH /api/notify/read-all` | Mark all notifications read | JWT |
 | `POST /api/notify` | Create notification | JWT |
+| `GET /api/notify/stream?token=<jwt>` | **Live SSE** notifications + `status_changed` events | JWT (query token) |
 
 Send the token as `Authorization: Bearer <jwt>`.
 
@@ -220,6 +223,10 @@ Load demo listings/claims with `node tests/seed.js` (Compose path). The cluster 
 | 11 | NGO | Enter a wrong OTP | Blocked — `400` |
 | 12 | Donor | Create a listing expiring in ~2 min, wait | Auto **Expired** |
 | 13 | — | Login as `admin@test.com` / `admin123` | Admin dashboard loads |
+| 14 | NGO | Claim a listing while the donor dashboard is open in another browser | Donor sees Claimed instantly; Notifications badge increments (no refresh) |
+| 15 | Rider | Pick up + deliver while donor/NGO tabs are open | Status badges and claim timeline update live; delivery notification arrives |
+| 16 | Donor | Post with a photo | NGO/rider/admin see the photo on cards, claim cards and the OTP modal |
+| 17 | Donor | Post food expiring within an hour | Rider + donor receive a **window expiring** notification; after expiry the listing becomes **Expired** live |
 
 ### Status colours
 
